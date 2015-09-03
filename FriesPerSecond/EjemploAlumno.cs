@@ -7,6 +7,8 @@ using Microsoft.DirectX.Direct3D;
 using System.Drawing;
 using Microsoft.DirectX;
 using TgcViewer.Utils.Modifiers;
+using TgcViewer.Utils.TgcSceneLoader;
+using TgcViewer.Utils.Sound;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
@@ -15,6 +17,13 @@ namespace AlumnoEjemplos.FriesPerSecond
     /// </summary>
     public class EjemploAlumno : TgcExample
     {
+        //Meshes
+        TgcMesh jugador;
+
+        //Musica
+        //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
+        string pathMusica;
+
         /// <summary>
         /// Categoría a la que pertenece el ejemplo.
         /// Influye en donde se va a haber en el árbol de la derecha de la pantalla.
@@ -55,6 +64,13 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Carpeta de archivos Media del alumno
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
+            pathMusica = GuiController.Instance.AlumnoEjemplosMediaDir + "Sonidos\\musica_fondo.mp3";
+            GuiController.Instance.Mp3Player.closeFile();
+            GuiController.Instance.Mp3Player.FileName = pathMusica;
+
+            TgcMp3Player player = GuiController.Instance.Mp3Player;
+
+            player.play(true);
 
             ///////////////USER VARS//////////////////
 
@@ -122,22 +138,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 string element = lista[i];
             }
-
-
         }
 
 
-        /// <summary>
-        /// Método que se llama cada vez que hay que refrescar la pantalla.
-        /// Escribir aquí todo el código referido al renderizado.
-        /// Borrar todo lo que no haga falta
-        /// </summary>
-        /// <param name="elapsedTime">Tiempo en segundos transcurridos desde el último frame</param>
+        
         public override void render(float elapsedTime)
         {
             //Device de DirectX para renderizar
             Device d3dDevice = GuiController.Instance.D3dDevice;
-
+            //Musica
 
             //Obtener valor de UserVar (hay que castear)
             int valor = (int)GuiController.Instance.UserVars.getValue("variablePrueba");

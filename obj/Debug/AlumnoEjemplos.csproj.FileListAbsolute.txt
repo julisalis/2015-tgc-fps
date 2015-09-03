@@ -1,0 +1,8 @@
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\obj\Debug\AlumnoEjemplos.csprojResolveAssemblyReference.cache
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\obj\Debug\AlumnoEjemplos.dll
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\obj\Debug\AlumnoEjemplos.pdb
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\AlumnoEjemplos.dll
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\AlumnoEjemplos.pdb
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\TgcViewer.exe
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\Ionic.Zip.dll
+C:\Users\Brian\Desktop\UTN\TGC\TgcViewer\AlumnoEjemplos\TgcViewer.pdb
