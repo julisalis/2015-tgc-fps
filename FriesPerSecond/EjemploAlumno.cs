@@ -14,6 +14,7 @@ using TgcViewer.Utils.TgcSkeletalAnimation;
 using TgcViewer.Utils.Terrain;
 using System.Windows.Forms;
 using TgcViewer.Utils._2D;
+using TgcViewer.Utils.Input;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
@@ -30,6 +31,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcSkeletalMesh original;
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
+        TgcText2d vida;
 
         protected Point mouseCenter;
 
@@ -94,7 +96,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             inicializarTerreno();
 
-            pathMusica = GuiController.Instance.AlumnoEjemplosMediaDir + "Sonidos\\musica_fondo.mp3";
+            pathMusica = GuiController.Instance.AlumnoEjemplosMediaDir + "Sonidos\\Stayin_alive.mp3";
             GuiController.Instance.Mp3Player.closeFile();
             GuiController.Instance.Mp3Player.FileName = pathMusica;
 
@@ -168,6 +170,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                 }
             }
 
+            //Crear texto 1, básico
+            vida = new TgcText2d();
+            vida.Text = "Vida: 100";
+            vida.Color = Color.Red;
+            vida.Size = new Size(300, 100);
+            vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
+            
+
             ///////////////USER VARS//////////////////
 
             //Crear una UserVar
@@ -207,6 +217,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.FpsCamera.JumpSpeed = 0;
             GuiController.Instance.FpsCamera.MovementSpeed *= 10;
 
+            
 
             /*
             ///////////////CONFIGURAR CAMARA PRIMERA PERSONA//////////////////
@@ -226,6 +237,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Device de DirectX para renderizar
             d3dDevice = GuiController.Instance.D3dDevice;
 
+            TgcD3dInput input = GuiController.Instance.D3dInput;
+            
+            //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
+            if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
+            {
+               // text1.render();
+            }
+
             //Renderizar suelo
             piso.render();
             skyBox.render();
@@ -239,12 +258,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                 mesh.render();
             }
 
+            //DIBUJOS 2D
             //Iniciar dibujado de todos los Sprites de la escena (en este caso es solo uno)
             GuiController.Instance.Drawer2D.beginDrawSprite();
 
             //Dibujar sprite (si hubiese mas, deberian ir todos aquí)
             mira.render();
             arma.render();
+            vida.render();
 
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
@@ -270,18 +291,18 @@ namespace AlumnoEjemplos.FriesPerSecond
             skyBox = new TgcSkyBox();
             skyBox.Center = new Vector3(0, 500, 0);
             skyBox.Size = new Vector3(15000, 15000, 15000);
-            string texturesPath = GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\SkyBox4\\";
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "city_top2.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "city_down.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "city_left.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "city_right.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "city_front.jpg");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "city_back.jpg");
-            skyBox.SkyEpsilon =50f;
+            string texturesPath = GuiController.Instance.AlumnoEjemplosMediaDir;//GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\SkyBox4\\";
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "//FullMoon//up.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "//FullMoon//down.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "//FullMoon//left.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "//FullMoon//right.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "//FullMoon//front.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "//FullMoon//back.png");
+            skyBox.SkyEpsilon =200f;
             skyBox.updateValues();
 
             //Crear piso
-            TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\TexturePack3\\pasto.jpg");
+            TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\TexturePack3\\goo1.jpg");
             piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(10000, 0, 10000), pisoTexture);
         }
 
