@@ -37,10 +37,18 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         //Mira
         TgcSprite mira;
+        TgcSprite mira_zoom;
 
         //Arma
         TgcSprite arma;
 
+
+        //Banderas
+        bool miraActivada;
+
+        //Variables
+        float anguloFov;
+        float aspectRatio;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -93,7 +101,6 @@ namespace AlumnoEjemplos.FriesPerSecond
                     focusWindows.Height / 2)
                     );
 
-
             inicializarTerreno();
 
             pathMusica = GuiController.Instance.AlumnoEjemplosMediaDir + "Sonidos\\Stayin_alive.mp3";
@@ -121,6 +128,9 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Crear Sprite
             mira = new TgcSprite();
             mira.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\mira.png");
+            miraActivada = false;
+            mira_zoom = new TgcSprite();
+            mira_zoom.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\mira_zoom3.png");
 
             arma = new TgcSprite();
             arma.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\arma.png");
@@ -131,8 +141,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             Size screenSize = GuiController.Instance.Panel3d.Size;
             Size textureSize = mira.Texture.Size;
             mira.Scaling = new Vector2(0.6f, 0.6f);
-            mira.Position = new Vector2(FastMath.Max(screenSize.Width / 2 - textureSize.Width / 2, 0), FastMath.Max(screenSize.Height / 2 - textureSize.Height / 2, 0));
-            
+            mira.Position = new Vector2(FastMath.Max(screenSize.Width / 2 - (textureSize.Width * 0.6f) / 2, 0), FastMath.Max(screenSize.Height / 2 - (textureSize.Height * 0.6f) / 2, 0));
+
+            mira_zoom.Scaling = new Vector2((float)screenSize.Width / mira_zoom.Texture.Size.Width, (float)screenSize.Height / mira_zoom.Texture.Size.Height);
+            mira_zoom.Position = new Vector2(0,0);
+
             Size armaSize = arma.Texture.Size;
             float escalaAncho = (screenSize.Width / 2f) / armaSize.Width;
 
@@ -147,7 +160,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 30;
             int cols = 10;
-            float offset = 500;
+            //float offset = 500;
             arboles = new List<TgcMesh>();
             //bool moverFila=false;
 
@@ -177,6 +190,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             vida.Size = new Size(300, 100);
             vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
             
+
+            //////VARIABLES DE FRUSTUM
+
+            aspectRatio = (float)GuiController.Instance.Panel3d.Width / GuiController.Instance.Panel3d.Height;
+
+            //Inicializo angulo de FOV
+            anguloFov = FastMath.ToRad(45.0f);
+
+            GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
 
             ///////////////USER VARS//////////////////
 
@@ -212,7 +234,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             posicion.Y += 120;
             posicion.Z += 10;
             GuiController.Instance.FpsCamera.Enable = true;
-            GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 0));
+            GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 1));
             //GuiController.Instance.FpsCamera.LookAt(new Vector3(0,120,0));
             GuiController.Instance.FpsCamera.JumpSpeed = 0;
             GuiController.Instance.FpsCamera.MovementSpeed *= 10;
@@ -238,19 +260,29 @@ namespace AlumnoEjemplos.FriesPerSecond
             d3dDevice = GuiController.Instance.D3dDevice;
 
             TgcD3dInput input = GuiController.Instance.D3dInput;
-            
+
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
-            if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
             {
-               // text1.render();
+                miraActivada = !miraActivada;
+                if (miraActivada)
+                {
+                    anguloFov = FastMath.ToRad(15.0f);
+                }
+                else
+                {
+                    anguloFov = FastMath.ToRad(45.0f);
+                }
+                GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
             }
+
 
             //Renderizar suelo
             piso.render();
             skyBox.render();
 
             //Renderizar original e instancias
-            original.animateAndRender();
+            //original.animateAndRender();
 
             //Renderizar instancias
             foreach (TgcMesh mesh in arboles)
@@ -259,16 +291,23 @@ namespace AlumnoEjemplos.FriesPerSecond
             }
 
             //DIBUJOS 2D
-            //Iniciar dibujado de todos los Sprites de la escena (en este caso es solo uno)
+            //Iniciar dibujado de todos los Sprites de la escena
             GuiController.Instance.Drawer2D.beginDrawSprite();
 
             //Dibujar sprite (si hubiese mas, deberian ir todos aquí)
-            mira.render();
-            arma.render();
-            vida.render();
-
+            if (miraActivada)
+            {
+                mira_zoom.render();
+            }
+            else
+            {
+                mira.render();
+                arma.render();
+            }
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
+
+            vida.render();
 
             //GuiController.Instance.FpsCamera.setCamera(GuiController.Instance.FpsCamera.Position, GuiController.Instance.FpsCamera.LookAt);
             ///////////////INPUT//////////////////
@@ -294,8 +333,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             string texturesPath = GuiController.Instance.AlumnoEjemplosMediaDir;//GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\SkyBox4\\";
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "//FullMoon//up.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "//FullMoon//down.png");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "//FullMoon//left.png");
-            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "//FullMoon//right.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Left, texturesPath + "//FullMoon//right.png");
+            skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "//FullMoon//left.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "//FullMoon//front.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "//FullMoon//back.png");
             skyBox.SkyEpsilon =200f;
