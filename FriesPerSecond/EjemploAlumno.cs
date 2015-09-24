@@ -49,10 +49,16 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Variables
         float anguloFov;
         float aspectRatio;
+        float velocidadAngular = 1.75f;
+        float velocidadMov = 750f;
+        float velocidadCorrer = 1500f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
         string pathMusica;
+
+        //Camara
+        Q3FpsCamera camaraQ3;
 
         /// <summary>
         /// Categoría a la que pertenece el ejemplo.
@@ -177,7 +183,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
 
                     //Desplazarlo
-                    instance.move(rand.Next(-5000,5000), 0, rand.Next(-5000,5000));
+                    instance.move(rand.Next(-10000,10000), 0, rand.Next(-10000,10000));
                     instance.Scale = new Vector3(1.3f, 1.3f, 1.3f);
                     arboles.Add(instance);
                 }
@@ -233,11 +239,20 @@ namespace AlumnoEjemplos.FriesPerSecond
             posicion = original.Position;
             posicion.Y += 120;
             posicion.Z += 10;
-            GuiController.Instance.FpsCamera.Enable = true;
+            /*GuiController.Instance.FpsCamera.Enable = true;
             GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 1));
             //GuiController.Instance.FpsCamera.LookAt(new Vector3(0,120,0));
             GuiController.Instance.FpsCamera.JumpSpeed = 0;
-            GuiController.Instance.FpsCamera.MovementSpeed *= 10;
+            GuiController.Instance.FpsCamera.MovementSpeed *= 10;*/
+
+            GuiController.Instance.FpsCamera.Enable = false;
+            GuiController.Instance.RotCamera.Enable = false;
+
+            camaraQ3 = new Q3FpsCamera();
+            camaraQ3.setCamera(posicion, posicion + new Vector3(1.0f, 0.0f, 0.0f));
+            camaraQ3.RotationSpeed = velocidadAngular;
+            camaraQ3.MovementSpeed = velocidadMov;
+            camaraQ3.LockCam = true;
 
             
 
@@ -261,6 +276,8 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
+            camaraQ3.updateCamera();
+
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
             {
@@ -276,6 +293,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                 GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
             }
 
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
+            {
+                camaraQ3.MovementSpeed = velocidadCorrer;
+            }
+            else
+            {
+                camaraQ3.MovementSpeed = velocidadMov;
+            }
 
             //Renderizar suelo
             piso.render();
@@ -329,7 +354,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Crear SkyBox
             skyBox = new TgcSkyBox();
             skyBox.Center = new Vector3(0, 500, 0);
-            skyBox.Size = new Vector3(15000, 15000, 15000);
+            skyBox.Size = new Vector3(20000, 20000, 20000);
             string texturesPath = GuiController.Instance.AlumnoEjemplosMediaDir;//GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\SkyBox4\\";
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Up, texturesPath + "//FullMoon//up.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Down, texturesPath + "//FullMoon//down.png");
@@ -342,7 +367,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Crear piso
             TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\TexturePack3\\goo1.jpg");
-            piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(10000, 0, 10000), pisoTexture);
+            piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(20000, 0, 20000), pisoTexture);
         }
 
     }
