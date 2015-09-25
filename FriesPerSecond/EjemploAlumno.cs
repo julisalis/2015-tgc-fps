@@ -24,6 +24,8 @@ namespace AlumnoEjemplos.FriesPerSecond
     public class EjemploAlumno : TgcExample
     {
         Device d3dDevice;
+        //Escena
+        TgcScene scene;
 
         //Meshes
         TgcBox piso;
@@ -32,6 +34,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
         TgcText2d vida;
+        TgcBox lightMesh;
 
         protected Point mouseCenter;
 
@@ -161,9 +164,9 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Cargar modelo de palmera original
             TgcSceneLoader loader1 = new TgcSceneLoader();
-            TgcScene scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
             palmeraOriginal = scene.Meshes[0];
-
+            
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 30;
             int cols = 10;
@@ -179,7 +182,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     //Crear instancia de modelo
                     TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
-
+                    
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000,10000), 0, rand.Next(-10000,10000));
@@ -187,6 +190,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     arboles.Add(instance);
                 }
             }
+            
 
             //Crear texto 1, básico
             vida = new TgcText2d();
@@ -194,7 +198,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             vida.Color = Color.Red;
             vida.Size = new Size(300, 100);
             vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
-            
+
 
             //////VARIABLES DE FRUSTUM
 
@@ -274,7 +278,6 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
             //Device de DirectX para renderizar
             d3dDevice = GuiController.Instance.D3dDevice;
-
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
             camaraQ3.updateCamera();
@@ -383,6 +386,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.UVTiling = new Vector2(50, 50);
             piso.updateValues();
         }
+        
 
     }
 }
