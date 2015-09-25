@@ -52,6 +52,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadAngular = 1.75f;
         float velocidadMov = 750f;
         float velocidadCorrer = 1500f;
+        float ruedita;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -174,8 +175,6 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             for (int i = 0; i < rows; i++)
             {
-                
-               
                 for (int j = 0; j < cols; j++)
                 {
                     //Crear instancia de modelo
@@ -200,6 +199,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             //////VARIABLES DE FRUSTUM
 
             aspectRatio = (float)GuiController.Instance.Panel3d.Width / GuiController.Instance.Panel3d.Height;
+
+            ruedita = 0f;
 
             //Inicializo angulo de FOV
             anguloFov = FastMath.ToRad(45.0f);
@@ -277,23 +278,34 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
             camaraQ3.updateCamera();
+            float ang = 0f;
 
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
+            if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
             {
-                miraActivada = !miraActivada;
-                if (miraActivada)
+                miraActivada = true;
+                ruedita -= input.WheelPos;
+                ang = 15.0f + ruedita;
+                if (ang > 45.0f)
                 {
-                    anguloFov = FastMath.ToRad(15.0f);
+                    ang = 45.0f;
                 }
-                else
+                else if (ang < 2.0f)
                 {
-                    anguloFov = FastMath.ToRad(45.0f);
+                    ang = 2.0f;
                 }
-                GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
+                anguloFov = FastMath.ToRad(ang);
+                ruedita = ang - 15.0f;
             }
+            else
+            {
+                ruedita = 0f;
+                miraActivada = false;
+                anguloFov = FastMath.ToRad(45.0f);
+            }
+            GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
 
-            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift))
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift) && !miraActivada)
             {
                 camaraQ3.MovementSpeed = velocidadCorrer;
             }
@@ -362,12 +374,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "//FullMoon//left.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "//FullMoon//front.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "//FullMoon//back.png");
-            skyBox.SkyEpsilon =200f;
+            skyBox.SkyEpsilon =50f;
             skyBox.updateValues();
 
             //Crear piso
-            TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesMediaDir + "Texturas\\Quake\\TexturePack3\\goo1.jpg");
+            TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.AlumnoEjemplosMediaDir + "\\pasto2.jpg");
             piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(20000, 0, 20000), pisoTexture);
+            piso.UVTiling = new Vector2(50, 50);
+            piso.updateValues();
         }
 
     }
