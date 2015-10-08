@@ -139,7 +139,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //ENEMIGOS          
             instanciasMalos = new List<TgcSkeletalMesh>();
             //El ultimo parametro es el radio
-            crearPersonajes(4,5,original, instanciasMalos,3.4f,100.0f);
+            crearPersonajes(4,3,original, instanciasMalos,3.4f,100.0f);
             
             //Crear Sprite
             mira = new TgcSprite();
