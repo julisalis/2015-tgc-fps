@@ -128,34 +128,19 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Cargar malla original
             TgcSkeletalLoader loader = new TgcSkeletalLoader();
-            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\Robot\\Robot-TgcSkeletalMesh.xml";
-            string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\Robot\\";
+            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
+            string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
             original = loader.loadMeshFromFile(pathMesh, mediaPath);
-            original.Scale = new Vector3(2.0f, 2.0f,2.0f);
-
+            original.Scale = new Vector3(3.4f, 3.4f,3.4f);
+            
             //Agregar animación a original
-            loader.loadAnimationFromFile(original, mediaPath + "Patear-TgcSkeletalAnim.xml");
+            loader.loadAnimationFromFile(original, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
 
-            //original.move(200, 0, 0);
-
-            float offset = 200;
-            int cantInstancias = 4;
+            //ENEMIGOS          
             instanciasMalos = new List<TgcSkeletalMesh>();
-            for (int i = 0; i < cantInstancias; i++)
-            {
-                TgcSkeletalMesh robotito = original.createMeshInstance(original.Name + i);
-
-                robotito.move(i * offset, 0, 0);
-                instanciasMalos.Add(robotito);
-            }
-
-            //Especificar la animación actual para todos los modelos
-            original.playAnimation("Patear");
-            foreach (TgcSkeletalMesh robot in instanciasMalos)
-            {
-                robot.playAnimation("Patear");
-            }
-
+            //El ultimo parametro es el radio
+            crearPersonajes(4,5,original, instanciasMalos,3.4f,100.0f);
+            
             //Crear Sprite
             mira = new TgcSprite();
             mira.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\mira.png");
@@ -269,8 +254,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             //GuiController.Instance.RotCamera.setCamera(new Vector3(0, 0, 0), 300);
             Vector3 posicion = new Vector3();
             posicion = original.Position;
-            posicion.Y += 120;
-            posicion.Z += 10;
+            posicion.Y += 150;
+            posicion.Z += 0;
             /*GuiController.Instance.FpsCamera.Enable = true;
             GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 1));
             //GuiController.Instance.FpsCamera.LookAt(new Vector3(0,120,0));
@@ -351,8 +336,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.render();
             skyBox.render();
 
-            //Renderizar original e instancias
-            original.animateAndRender();
+            //Renderizar original e instancias (no dibujo original, solo instancias)
+            //original.animateAndRender();
             foreach (TgcSkeletalMesh robot in instanciasMalos)
             {
                 robot.animateAndRender();
@@ -423,6 +408,41 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(20000, 0, 20000), pisoTexture);
             piso.UVTiling = new Vector2(50, 50);
             piso.updateValues();
+        }
+
+        public void crearPersonajes(int columnas,int filas,TgcSkeletalMesh meshOriginal, List<TgcSkeletalMesh> lista,float scale,float radio)
+        {
+            Random rand1 = new Random();
+            float x=0f;
+            float z=0f;
+            //instanciasMalos = new List<TgcSkeletalMesh>();
+            //int rowsRobot = 3;
+            //int colsRobot = 3;
+            for (int k = 0; k < filas; k++)
+            {
+                for (int q = 0; q < columnas; q++)
+                {
+                    //Crear instancia de modelo
+                    TgcSkeletalMesh instance = meshOriginal.createMeshInstance(original.Name + k + "_" + q);
+                    do
+                    {
+                        x = rand1.Next(-5000, 5000);
+                        z = rand1.Next(-5000, 5000);
+                    } while (FastMath.Sqrt(x*x+z*z)<=radio);
+
+                    //Desplazarlo
+                    instance.move(x, 0, z);
+                    instance.Scale = new Vector3(scale, scale, scale);
+                    lista.Add(instance);
+                }
+            }
+
+            original.playAnimation("Walk");
+            foreach (TgcSkeletalMesh robot in lista)
+            {
+                robot.playAnimation("Walk");
+            }
+            
         }
         
 
