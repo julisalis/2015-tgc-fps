@@ -25,6 +25,8 @@ namespace AlumnoEjemplos.FriesPerSecond
     public class EjemploAlumno : TgcExample
     {
         Device d3dDevice;
+        //Escena
+        TgcScene scene;
 
         //Meshes
         TgcBox piso;
@@ -34,6 +36,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
         TgcText2d vida;
+        TgcBox lightMesh;
 
         Effect effect;
         float time;
@@ -182,7 +185,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Cargar modelo de palmera original
             TgcSceneLoader loader1 = new TgcSceneLoader();
-            TgcScene scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
             palmeraOriginal = scene.Meshes[0];
 
             //Cargar Shader personalizado
@@ -208,13 +211,13 @@ namespace AlumnoEjemplos.FriesPerSecond
                     instance.Effect = effect;
                     instance.Technique = "RenderScene";
 
-
                     //Desplazarlo
                     instance.move(rand.Next(-10000,10000), 0, rand.Next(-10000,10000));
                     instance.Scale = new Vector3(1.3f, 1.3f, 1.3f);
                     arboles.Add(instance);
                 }
             }
+            
 
             //Crear texto 1, básico
             vida = new TgcText2d();
@@ -222,7 +225,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             vida.Color = Color.Red;
             vida.Size = new Size(300, 100);
             vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
-            
+
 
             //////VARIABLES DE FRUSTUM
 
@@ -421,6 +424,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.UVTiling = new Vector2(50, 50);
             piso.updateValues();
         }
+        
 
     }
 }
