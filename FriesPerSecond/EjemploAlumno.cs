@@ -15,6 +15,7 @@ using TgcViewer.Utils.Terrain;
 using System.Windows.Forms;
 using TgcViewer.Utils._2D;
 using TgcViewer.Utils.Input;
+using TgcViewer.Utils.Shaders;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
@@ -29,9 +30,13 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcBox piso;
         TgcSkyBox skyBox;
         TgcSkeletalMesh original;
+        List<TgcSkeletalMesh> instanciasMalos;
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
         TgcText2d vida;
+
+        Effect effect;
+        float time;
 
         protected Point mouseCenter;
 
@@ -123,14 +128,30 @@ namespace AlumnoEjemplos.FriesPerSecond
             string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\Robot\\Robot-TgcSkeletalMesh.xml";
             string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\Robot\\";
             original = loader.loadMeshFromFile(pathMesh, mediaPath);
+            original.Scale = new Vector3(2.0f, 2.0f,2.0f);
 
             //Agregar animación a original
-            loader.loadAnimationFromFile(original, mediaPath + "Parado-TgcSkeletalAnim.xml");
+            loader.loadAnimationFromFile(original, mediaPath + "Patear-TgcSkeletalAnim.xml");
 
             //original.move(200, 0, 0);
 
+            float offset = 200;
+            int cantInstancias = 4;
+            instanciasMalos = new List<TgcSkeletalMesh>();
+            for (int i = 0; i < cantInstancias; i++)
+            {
+                TgcSkeletalMesh robotito = original.createMeshInstance(original.Name + i);
+
+                robotito.move(i * offset, 0, 0);
+                instanciasMalos.Add(robotito);
+            }
+
             //Especificar la animación actual para todos los modelos
-            original.playAnimation("Parado");
+            original.playAnimation("Patear");
+            foreach (TgcSkeletalMesh robot in instanciasMalos)
+            {
+                robot.playAnimation("Patear");
+            }
 
             //Crear Sprite
             mira = new TgcSprite();
@@ -164,6 +185,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcScene scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
             palmeraOriginal = scene.Meshes[0];
 
+            //Cargar Shader personalizado
+            effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
+            palmeraOriginal.Effect = effect;
+            palmeraOriginal.Technique = "RenderScene";
+
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 30;
             int cols = 10;
@@ -179,6 +205,8 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     //Crear instancia de modelo
                     TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
+                    instance.Effect = effect;
+                    instance.Technique = "RenderScene";
 
 
                     //Desplazarlo
@@ -274,6 +302,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
             //Device de DirectX para renderizar
             d3dDevice = GuiController.Instance.D3dDevice;
+            
+            time += elapsedTime;
 
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
@@ -319,7 +349,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             skyBox.render();
 
             //Renderizar original e instancias
-            //original.animateAndRender();
+            original.animateAndRender();
+            foreach (TgcSkeletalMesh robot in instanciasMalos)
+            {
+                robot.animateAndRender();
+            }
+
+            // Cargar variables de shader, por ejemplo el tiempo transcurrido.
+            effect.SetValue("time", time);
 
             //Renderizar instancias
             foreach (TgcMesh mesh in arboles)
@@ -358,7 +395,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         /// </summary>
         public override void close()
         {
-
+            effect.Dispose();
+            original.dispose();
         }
 
         public void inicializarTerreno()

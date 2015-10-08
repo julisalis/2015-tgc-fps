@@ -91,7 +91,9 @@
     <Compile Include="FriesPerSecond\EjemploAlumno.cs" />
     <Compile Include="FriesPerSecond\Enemigo.cs" />
     <Compile Include="FriesPerSecond\Jugador.cs" />
-    <Compile Include="FriesPerSecond\Q3FpsCamera.cs" />
+    <Compile Include="FriesPerSecond\Q3FpsCamera.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +121,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="AlumnoMedia\Shaders\viento.fx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
