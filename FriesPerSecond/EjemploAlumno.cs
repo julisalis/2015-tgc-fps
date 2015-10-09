@@ -36,12 +36,16 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
         TgcText2d vida;
-        TgcBox lightMesh;
 
         Effect effect;
         float time;
 
         protected Point mouseCenter;
+
+        //Bounding
+        TgcBoundingBox boundingCamara;
+        Vector3 boundingCamScale;
+        Vector3 ultimaPosCamara;
 
         //Mira
         TgcSprite mira;
@@ -268,22 +272,18 @@ namespace AlumnoEjemplos.FriesPerSecond
             camaraQ3.MovementSpeed = velocidadMov;
             camaraQ3.LockCam = true;
 
+            ultimaPosCamara = camaraQ3.getPosition();
+            boundingCamara = new TgcBoundingBox();
+            boundingCamScale = new Vector3(0f, 0f, 0f);
+            boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
+
             //ENEMIGOS          
             instanciasMalos = new List<TgcSkeletalMesh>();
             //El ultimo parametro es el radio
             crearPersonajes(4, 3, original, instanciasMalos, 3.4f, 100.0f);
 
             
-
-            /*
-            ///////////////CONFIGURAR CAMARA PRIMERA PERSONA//////////////////
-            //Camara en primera persona, tipo videojuego FPS
-            //Solo puede haber una camara habilitada a la vez. Al habilitar la camara FPS se deshabilita la camara rotacional
-            //Por default la camara FPS viene desactivada
-            GuiController.Instance.FpsCamera.Enable = true;
-            //Configurar posicion y hacia donde se mira
-            GuiController.Instance.FpsCamera.setCamera(new Vector3(0, 0, -20), new Vector3(0, 0, 0));
-            */
+            
         }
 
 
@@ -298,8 +298,10 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
             camaraQ3.updateCamera();
+            
+            boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
+            
             float ang = 0f;
-
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
             if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
             {
@@ -352,8 +354,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             foreach (TgcMesh mesh in arboles)
             {
                 mesh.render();
+                /*
+                mesh.BoundingBox.render();
+                
+                if (boundingCamara.)
+                {
+                    
+                }*/
             }
-
+            ultimaPosCamara = camaraQ3.getPosition();
             //DIBUJOS 2D
             //Iniciar dibujado de todos los Sprites de la escena
             GuiController.Instance.Drawer2D.beginDrawSprite();
