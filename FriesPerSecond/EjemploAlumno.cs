@@ -136,10 +136,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Agregar animación a original
             loader.loadAnimationFromFile(original, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
 
-            //ENEMIGOS          
-            instanciasMalos = new List<TgcSkeletalMesh>();
-            //El ultimo parametro es el radio
-            crearPersonajes(4,3,original, instanciasMalos,3.4f,100.0f);
+            
             
             //Crear Sprite
             mira = new TgcSprite();
@@ -270,6 +267,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             camaraQ3.RotationSpeed = velocidadAngular;
             camaraQ3.MovementSpeed = velocidadMov;
             camaraQ3.LockCam = true;
+
+            //ENEMIGOS          
+            instanciasMalos = new List<TgcSkeletalMesh>();
+            //El ultimo parametro es el radio
+            crearPersonajes(4, 3, original, instanciasMalos, 3.4f, 100.0f);
 
             
 
@@ -424,14 +426,20 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     //Crear instancia de modelo
                     TgcSkeletalMesh instance = meshOriginal.createMeshInstance(original.Name + k + "_" + q);
+                    
                     do
                     {
                         x = rand1.Next(-5000, 5000);
                         z = rand1.Next(-5000, 5000);
                     } while (FastMath.Sqrt(x*x+z*z)<=radio);
 
+                    //instance.rotateY(FastMath.Atan(3f));
                     //Desplazarlo
                     instance.move(x, 0, z);
+
+                    //Roto el mesh
+                    rotarMesh(instance);
+
                     instance.Scale = new Vector3(scale, scale, scale);
                     lista.Add(instance);
                 }
@@ -443,6 +451,15 @@ namespace AlumnoEjemplos.FriesPerSecond
                 robot.playAnimation("Walk");
             }
             
+        } 
+
+        public void rotarMesh(TgcSkeletalMesh mesh1)
+        {
+            Vector3 haciaDondeDebeMirar;
+            haciaDondeDebeMirar = mesh1.Position - camaraQ3.getPosition();
+            haciaDondeDebeMirar.Y=0;
+            haciaDondeDebeMirar.Normalize();
+            mesh1.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - mesh1.Rotation.Y) ;
         }
         
 
