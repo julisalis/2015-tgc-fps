@@ -36,9 +36,14 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh palmeraOriginal;
         List<TgcMesh> arboles;
         TgcText2d vida;
+        Vector2 posicionArmaDisparo;
+        Vector2 posicionArmaOriginal;
 
         Effect effect;
         float time;
+
+        //Sonidos
+        TgcStaticSound disparo;
 
         protected Point mouseCenter;
 
@@ -152,7 +157,9 @@ namespace AlumnoEjemplos.FriesPerSecond
             arma = new TgcSprite();
             arma.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\arma.png");
 
-
+            //Sonidos
+            disparo = new TgcStaticSound();
+            disparo.loadSound(GuiController.Instance.ExamplesMediaDir + "\\Sound\\explosión, pequeña.wav");
 
             //Ubicarlo centrado en la pantalla
             Size screenSize = GuiController.Instance.Panel3d.Size;
@@ -168,6 +175,9 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             arma.Scaling = new Vector2(escalaAncho, escalaAncho);
             arma.Position = new Vector2(screenSize.Width - (armaSize.Width * escalaAncho), screenSize.Height - (armaSize.Height * escalaAncho));
+            
+            posicionArmaDisparo = new Vector2(arma.Position.X + 5f, arma.Position.Y + 5f);
+            posicionArmaOriginal = arma.Position;
 
             //Cargar modelo de palmera original
             TgcSceneLoader loader1 = new TgcSceneLoader();
@@ -363,6 +373,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 }*/
             }
             ultimaPosCamara = camaraQ3.getPosition();
+
             //DIBUJOS 2D
             //Iniciar dibujado de todos los Sprites de la escena
             GuiController.Instance.Drawer2D.beginDrawSprite();
@@ -376,6 +387,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 mira.render();
                 arma.render();
+            }
+            //DISPARO
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && !miraActivada)
+            {                
+                arma.Position = posicionArmaDisparo;
+                arma.render();
+                disparo.play(false);
+                arma.Position = posicionArmaOriginal;
             }
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
