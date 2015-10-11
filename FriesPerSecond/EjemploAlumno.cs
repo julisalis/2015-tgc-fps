@@ -352,9 +352,12 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Renderizar original e instancias (no dibujo original, solo instancias)
             //original.animateAndRender();
-            foreach (TgcSkeletalMesh robot in instanciasMalos)
+            foreach (TgcSkeletalMesh enemigo in instanciasMalos)
             {
-                robot.animateAndRender();
+                enemigo.animateAndRender();
+                rotarMesh(enemigo);
+                enemigo.moveOrientedY(-5);
+                
             }
 
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
@@ -395,6 +398,10 @@ namespace AlumnoEjemplos.FriesPerSecond
                 arma.render();
                 disparo.play(false);
                 arma.Position = posicionArmaOriginal;
+            }
+            else if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && miraActivada)
+            {
+                disparo.play(false);
             }
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
