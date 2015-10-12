@@ -70,6 +70,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadMov = 750f;
         float velocidadCorrer = 1500f;
         float ruedita;
+        float velocidadEnemigos = -5f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -283,9 +284,10 @@ namespace AlumnoEjemplos.FriesPerSecond
             camaraQ3.LockCam = true;
 
             ultimaPosCamara = camaraQ3.getPosition();
+            Vector3 posBound = new Vector3(camaraQ3.getPosition().X, camaraQ3.getPosition().Y + 30, camaraQ3.getPosition().Z);
             boundingCamara = new TgcBoundingBox();
-            boundingCamScale = new Vector3(0f, 0f, 0f);
-            boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
+            boundingCamScale = new Vector3(1f, 1f, 1f);
+            boundingCamara.scaleTranslate(posBound, boundingCamScale);
 
             //ENEMIGOS          
             instanciasMalos = new List<TgcSkeletalMesh>();
@@ -309,8 +311,12 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             camaraQ3.updateCamera();
             
-            boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
-            
+            /*
+            //boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
+            boundingCamara.setRenderColor(Color.Red);
+            boundingCamara.render();
+            */
+             
             float ang = 0f;
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
             if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
@@ -356,7 +362,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 enemigo.animateAndRender();
                 rotarMesh(enemigo);
-                enemigo.moveOrientedY(-5);
+                enemigo.moveOrientedY(velocidadEnemigos);
                 
             }
 
@@ -367,13 +373,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             foreach (TgcMesh mesh in arboles)
             {
                 mesh.render();
-                /*
-                mesh.BoundingBox.render();
                 
-                if (boundingCamara.)
-                {
-                    
-                }*/
             }
             ultimaPosCamara = camaraQ3.getPosition();
 
