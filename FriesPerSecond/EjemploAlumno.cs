@@ -19,6 +19,7 @@ using TgcViewer.Utils.Shaders;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
+    
     /// <summary>
     /// Ejemplo del alumno
     /// </summary>
@@ -363,6 +364,13 @@ namespace AlumnoEjemplos.FriesPerSecond
                 enemigo.animateAndRender();
                 rotarMesh(enemigo);
                 enemigo.moveOrientedY(velocidadEnemigos);
+                foreach (TgcMesh arbol in arboles)
+                {
+                    if (TgcCollisionUtils.testAABBAABB(enemigo.BoundingBox,arbol.BoundingBox))
+                    {
+                        enemigo.moveOrientedY(-velocidadEnemigos);
+                    }
+                }
                 
             }
 
@@ -373,6 +381,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             foreach (TgcMesh mesh in arboles)
             {
                 mesh.render();
+                mesh.BoundingBox.render();
                 
             }
             ultimaPosCamara = camaraQ3.getPosition();
@@ -467,6 +476,9 @@ namespace AlumnoEjemplos.FriesPerSecond
                         x = rand1.Next(-5000, 5000);
                         z = rand1.Next(-5000, 5000);
                     } while (FastMath.Sqrt(x*x+z*z)<=radio);
+                    //Achico el bounding box del arbol
+                    //instance.BoundingBox.scaleTranslate(new Vector3(0f, 0f, 0f), new Vector3(0.5f, 0.5f, 0.5f));
+                    
 
                     //instance.rotateY(FastMath.Atan(3f));
                     //Desplazarlo
