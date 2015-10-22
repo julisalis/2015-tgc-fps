@@ -113,6 +113,43 @@ VS_OUTPUT vs_main2( VS_INPUT Input )
    
 }
 
+VS_OUTPUT vs_pasto( VS_INPUT Input )
+{
+   VS_OUTPUT Output;
+
+   // Animar posicion
+   float4 displ;
+   float dx = 0.0;
+   float dy = 0.0;
+   float PI = 3.1415;
+   float t = time * 0.08;
+
+   if(Input.Position.y >= 5){
+      dx += 25*(cos(t*PI)*cos(t*PI)*cos(t*1*PI)*cos(t*3*PI)*cos(t*5*PI) + sin(t*2*PI) * 0.1);
+   }
+
+   displ.x = Input.Position.x + dx;
+   displ.y = Input.Position.y + dy;
+   displ.z = Input.Position.z;
+   displ.w = 1.0;
+
+   //Proyectar posicion
+   Output.Position = mul( displ, matWorldViewProj);
+   
+   //Propago las coordenadas de textura
+   Output.Texcoord = Input.Texcoord;
+
+	/*// Animar color
+   Input.Color.r = abs(sin(time));
+   Input.Color.g = abs(cos(time));*/
+   
+   //Propago el color x vertice
+   Output.Color = Input.Color;
+
+   return( Output );
+   
+}
+
 //Pixel Shader
 float4 ps_main( float2 Texcoord: TEXCOORD0, float4 Color:COLOR0) : COLOR0
 {      
@@ -131,6 +168,16 @@ technique RenderScene
    pass Pass_0
    {
 	  VertexShader = compile vs_2_0 vs_main2();
+	  PixelShader = compile ps_2_0 ps_main();
+   }
+
+}
+
+technique VientoPasto
+{
+   pass Pass_0
+   {
+	  VertexShader = compile vs_2_0 vs_pasto();
 	  PixelShader = compile ps_2_0 ps_main();
    }
 

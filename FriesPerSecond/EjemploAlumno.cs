@@ -32,16 +32,29 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Meshes
         TgcBox piso;
         TgcSkyBox skyBox;
-        TgcSkeletalMesh original;
-        List<TgcSkeletalMesh> instanciasMalos;
+        TgcSkeletalMesh originalEnemigo;
+        List<Enemigo> instanciasEnemigos;
         TgcMesh palmeraOriginal;
+        TgcMesh pastoOriginal;
+        List<TgcMesh> pasto;
         List<TgcMesh> arboles;
+        List<TgcBoundingBox> BBZona1;
+        List<TgcBoundingBox> BBZona2;
+        List<TgcBoundingBox> BBZona3;
+        List<TgcBoundingBox> BBZona4;
+        List<TgcBox> balasDisp;
+        List<TgcBox> balasEnVuelo;
+        //List<TgcMesh> arboles;
+        //List<List<TgcMesh>> zonas;
         TgcText2d vida;
         Vector2 posicionArmaDisparo;
         Vector2 posicionArmaOriginal;
 
+        TgcBox box;
+
         Effect effect;
         float time;
+        Random rand;
 
         //Sonidos
         TgcStaticSound disparo;
@@ -71,7 +84,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadMov = 750f;
         float velocidadCorrer = 1500f;
         float ruedita;
-        float velocidadEnemigos = -5f;
+        float velocidadEnemigos = -3f;
+        float velocidadBala = 2f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -117,8 +131,12 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Device de DirectX para crear primitivas
             d3dDevice = GuiController.Instance.D3dDevice;
 
+            rand = new Random();
+
             //Carpeta de archivos Media del alumno
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+
+            effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
 
             Control focusWindows = GuiController.Instance.D3dDevice.CreationParameters.FocusWindow;
             mouseCenter = focusWindows.PointToScreen(
@@ -135,19 +153,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             TgcMp3Player player = GuiController.Instance.Mp3Player;
 
-            player.play(true);
-
-            //Cargar malla original
-            TgcSkeletalLoader loader = new TgcSkeletalLoader();
-            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
-            string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
-            original = loader.loadMeshFromFile(pathMesh, mediaPath);
-            original.Scale = new Vector3(3.4f, 3.4f,3.4f);
-            
-            //Agregar animación a original
-            loader.loadAnimationFromFile(original, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
-
-            
+            player.play(true);         
             
             //Crear Sprite
             mira = new TgcSprite();
@@ -181,40 +187,18 @@ namespace AlumnoEjemplos.FriesPerSecond
             posicionArmaDisparo = new Vector2(arma.Position.X + 5f, arma.Position.Y + 5f);
             posicionArmaOriginal = arma.Position;
 
-            //Cargar modelo de palmera original
-            TgcSceneLoader loader1 = new TgcSceneLoader();
-            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
-            palmeraOriginal = scene.Meshes[0];
+            //Cargar malla original
+            TgcSkeletalLoader loader = new TgcSkeletalLoader();
+            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
+            string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
+            originalEnemigo = loader.loadMeshFromFile(pathMesh, mediaPath);
+            originalEnemigo.Scale = new Vector3(3.4f, 3.4f, 3.4f);
 
-            //Cargar Shader personalizado
-            effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
-            palmeraOriginal.Effect = effect;
-            palmeraOriginal.Technique = "RenderScene";
+            //Agregar animación a original
+            loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
 
-            //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
-            int rows = 30;
-            int cols = 10;
-            //float offset = 500;
-            arboles = new List<TgcMesh>();
-            //bool moverFila=false;
-
-            Random rand = new Random();
-
-            for (int i = 0; i < rows; i++)
-            {
-                for (int j = 0; j < cols; j++)
-                {
-                    //Crear instancia de modelo
-                    TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
-                    instance.Effect = effect;
-                    instance.Technique = "RenderScene";
-
-                    //Desplazarlo
-                    instance.move(rand.Next(-10000,10000), 0, rand.Next(-10000,10000));
-                    instance.Scale = new Vector3(1.3f, 1.3f, 1.3f);
-                    arboles.Add(instance);
-                }
-            }
+            inicializarArboles();
+            inicializarPasto();
             
 
             //Crear texto 1, básico
@@ -265,10 +249,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //GuiController.Instance.RotCamera.Enable = true;
             //Configurar centro al que se mira y distancia desde la que se mira
             //GuiController.Instance.RotCamera.setCamera(new Vector3(0, 0, 0), 300);
-            Vector3 posicion = new Vector3();
-            posicion = original.Position;
-            posicion.Y += 150;
-            posicion.Z += 0;
+            Vector3 posicion = new Vector3(0f,150f,0f);
             /*GuiController.Instance.FpsCamera.Enable = true;
             GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 1));
             //GuiController.Instance.FpsCamera.LookAt(new Vector3(0,120,0));
@@ -291,39 +272,170 @@ namespace AlumnoEjemplos.FriesPerSecond
             boundingCamara.scaleTranslate(posBound, boundingCamScale);
 
             //ENEMIGOS          
-            instanciasMalos = new List<TgcSkeletalMesh>();
+            instanciasEnemigos = new List<Enemigo>();
             //El ultimo parametro es el radio
-            crearPersonajes(4, 3, original, instanciasMalos, 3.4f, 100.0f);
+            inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 100.0f);
 
-            
-            
+            balasDisp = new List<TgcBox>();
+            balasEnVuelo = new List<TgcBox>();
+            for (int i = 0; i < 15; i++)
+            {
+                TgcBox bala = TgcBox.fromSize(new Vector3(10f,5f,10f),Color.Red);
+                balasDisp.Add(bala);
+            }
         }
-
-
         
         public override void render(float elapsedTime)
         {
             //Device de DirectX para renderizar
             d3dDevice = GuiController.Instance.D3dDevice;
-            
             time += elapsedTime;
 
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
             camaraQ3.updateCamera();
+
+            ajustarZoom();
+
+            ajustarVelocidad();
+
+            //Renderizar suelo
+            piso.render();
+            skyBox.render();
+
+            //Renderizar original e instancias (no dibujo original, solo instancias)
+            //original.animateAndRender();
+            foreach (Enemigo enemigo in instanciasEnemigos)
+            {
+                if (enemigo.estaVivo)
+                {
+                    enemigo.meshEnemigo.animateAndRender();
+                    enemigo.meshEnemigo.BoundingBox.render();
+                    rotarMesh(enemigo.meshEnemigo);
+                    enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
+                    foreach (TgcBoundingBox bb in obtenerListaZona(enemigo.meshEnemigo.Position))
+                    {
+                        if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, bb))
+                        {
+                            enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos);
+                        }
+                    }
+                }
+                
+            }
+
+            // Cargar variables de shader, por ejemplo el tiempo transcurrido.
+            effect.SetValue("time", time);
+
+            //Renderizar instancias
+            renderizarTodosLosArboles();
+            renderizarPasto();
+            ultimaPosCamara = camaraQ3.getPosition();
+
+            //DIBUJOS 2D
+            renderSprites(input);
+
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                if (balasDisp.Count > 0)
+                {
+                    TgcBox bala = balasDisp[0];
+                    bala.Position = camaraQ3.getPosition();
+                    bala.Position -= new Vector3(0f,10f, 0f);
+                    orientarBala(bala);
+                    bala.updateValues();
+                    balasEnVuelo.Add(bala);
+                    balasDisp.Remove(bala);
+                }
+                
+                
+            }
+
+            foreach (TgcBox b in balasEnVuelo)
+            {
+                b.moveOrientedY(velocidadBala);
+                b.render();
+                //b.BoundingBox.render();
+            }
             
-            /*
-            //boundingCamara.scaleTranslate(camaraQ3.getPosition(), boundingCamScale);
-            boundingCamara.setRenderColor(Color.Red);
-            boundingCamara.render();
-            */
-             
+
+            foreach (Enemigo enem in instanciasEnemigos)
+            {
+                if (enem.estaVivo)
+                {
+                    foreach (TgcBox b in balasEnVuelo)
+                    {
+                        TgcCollisionUtils.BoxBoxResult result = TgcCollisionUtils.classifyBoxBox(b.BoundingBox, enem.meshEnemigo.BoundingBox);
+                        if (result == TgcCollisionUtils.BoxBoxResult.Adentro || result == TgcCollisionUtils.BoxBoxResult.Atravesando)
+                        {
+                            enem.estaVivo = false;
+                            balasDisp.Add(b);
+                            balasEnVuelo.Remove(b);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            vida.render();
+
+            //GuiController.Instance.FpsCamera.setCamera(GuiController.Instance.FpsCamera.Position, GuiController.Instance.FpsCamera.LookAt);
+            ///////////////INPUT//////////////////
+            //conviene deshabilitar ambas camaras para que no haya interferencia
+
+        }
+
+        private void renderSprites(TgcD3dInput input)
+        {
+            //Iniciar dibujado de todos los Sprites de la escena
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+
+            //Dibujar sprite (si hubiese mas, deberian ir todos aquí)
+            if (miraActivada)
+            {
+                mira_zoom.render();
+            }
+            else
+            {
+                mira.render();
+                arma.render();
+            }
+            //DISPARO
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && !miraActivada)
+            {
+                arma.Position = posicionArmaDisparo;
+                arma.render();
+                disparo.play(false);
+                arma.Position = posicionArmaOriginal;
+            }
+            else if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && miraActivada)
+            {
+                disparo.play(false);
+            }
+            //Finalizar el dibujado de Sprites
+            GuiController.Instance.Drawer2D.endDrawSprite();
+        }
+
+        private void ajustarVelocidad()
+        {
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift) && !miraActivada)
+            {
+                camaraQ3.MovementSpeed = velocidadCorrer;
+            }
+            else
+            {
+                camaraQ3.MovementSpeed = velocidadMov;
+            }
+        }
+
+        private void ajustarZoom()
+        {
             float ang = 0f;
             //float num = (float)GuiController.Instance.Modifiers.getValue("valorFloat");
-            if (input.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
+            if (GuiController.Instance.D3dInput.buttonDown(TgcD3dInput.MouseButtons.BUTTON_RIGHT))
             {
                 miraActivada = true;
-                ruedita -= input.WheelPos;
+                ruedita -= GuiController.Instance.D3dInput.WheelPos;
                 ang = 15.0f + ruedita;
                 if (ang > 45.0f)
                 {
@@ -342,85 +454,24 @@ namespace AlumnoEjemplos.FriesPerSecond
                 miraActivada = false;
                 anguloFov = FastMath.ToRad(45.0f);
             }
+
             GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
+        }
 
-            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.LeftShift) && !miraActivada)
+        private void renderizarTodosLosArboles()
+        {
+            foreach (TgcMesh arbol in arboles)
             {
-                camaraQ3.MovementSpeed = velocidadCorrer;
+                arbol.render();
             }
-            else
+        }
+
+        private void renderizarPasto()
+        {
+            foreach (TgcMesh p in pasto)
             {
-                camaraQ3.MovementSpeed = velocidadMov;
+                p.render();
             }
-
-            //Renderizar suelo
-            piso.render();
-            skyBox.render();
-
-            //Renderizar original e instancias (no dibujo original, solo instancias)
-            //original.animateAndRender();
-            foreach (TgcSkeletalMesh enemigo in instanciasMalos)
-            {
-                enemigo.animateAndRender();
-                rotarMesh(enemigo);
-                enemigo.moveOrientedY(velocidadEnemigos);
-                foreach (TgcMesh arbol in arboles)
-                {
-                    if (TgcCollisionUtils.testAABBAABB(enemigo.BoundingBox,arbol.BoundingBox))
-                    {
-                        enemigo.moveOrientedY(-velocidadEnemigos);
-                    }
-                }
-                
-            }
-
-            // Cargar variables de shader, por ejemplo el tiempo transcurrido.
-            effect.SetValue("time", time);
-
-            //Renderizar instancias
-            foreach (TgcMesh mesh in arboles)
-            {
-                mesh.render();
-                mesh.BoundingBox.render();
-                
-            }
-            ultimaPosCamara = camaraQ3.getPosition();
-
-            //DIBUJOS 2D
-            //Iniciar dibujado de todos los Sprites de la escena
-            GuiController.Instance.Drawer2D.beginDrawSprite();
-
-            //Dibujar sprite (si hubiese mas, deberian ir todos aquí)
-            if (miraActivada)
-            {
-                mira_zoom.render();
-            }
-            else
-            {
-                mira.render();
-                arma.render();
-            }
-            //DISPARO
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && !miraActivada)
-            {                
-                arma.Position = posicionArmaDisparo;
-                arma.render();
-                disparo.play(false);
-                arma.Position = posicionArmaOriginal;
-            }
-            else if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && miraActivada)
-            {
-                disparo.play(false);
-            }
-            //Finalizar el dibujado de Sprites
-            GuiController.Instance.Drawer2D.endDrawSprite();
-
-            vida.render();
-
-            //GuiController.Instance.FpsCamera.setCamera(GuiController.Instance.FpsCamera.Position, GuiController.Instance.FpsCamera.LookAt);
-            ///////////////INPUT//////////////////
-            //conviene deshabilitar ambas camaras para que no haya interferencia
-
         }
 
         /// <summary>
@@ -430,8 +481,10 @@ namespace AlumnoEjemplos.FriesPerSecond
         public override void close()
         {
             effect.Dispose();
-            original.dispose();
+            originalEnemigo.dispose();
         }
+
+        #region inicializaciones
 
         public void inicializarTerreno()
         {
@@ -456,9 +509,100 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.updateValues();
         }
 
-        public void crearPersonajes(int columnas,int filas,TgcSkeletalMesh meshOriginal, List<TgcSkeletalMesh> lista,float scale,float radio)
+        private void inicializarArboles()
         {
-            Random rand1 = new Random();
+            string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+
+            //Cargar modelo de palmera original
+            TgcSceneLoader loader1 = new TgcSceneLoader();
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Palmera\\Palmera-TgcScene.xml");
+            palmeraOriginal = scene.Meshes[0];
+
+            //Cargar Shader personalizado
+            palmeraOriginal.Effect = effect;
+            palmeraOriginal.Technique = "RenderScene";
+
+            //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
+            int rows = 30;
+            int cols = 10;
+            //float offset = 500;
+            BBZona1 = new List<TgcBoundingBox>();
+            BBZona2 = new List<TgcBoundingBox>();
+            BBZona3 = new List<TgcBoundingBox>();
+            BBZona4 = new List<TgcBoundingBox>();
+            arboles = new List<TgcMesh>();
+            //bool moverFila=false;
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    //Crear instancia de modelo
+                    TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
+                    instance.Effect = effect;
+                    instance.Technique = "RenderScene";
+
+                    //Desplazarlo
+                    instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance.Scale = new Vector3(1.3f, 1.3f, 1.3f);
+
+                    arboles.Add(instance);
+                    obtenerListaZona(instance.Position).Add(clonarBoundingBoxArbol(instance.BoundingBox));
+                }
+            }
+        }
+
+        private void inicializarPasto()
+        {
+            string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+
+            //Cargar modelo de palmera original
+            TgcSceneLoader loader1 = new TgcSceneLoader();
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Arbusto\\Arbusto-TgcScene.xml");
+            pastoOriginal = scene.Meshes[0];
+
+            //Cargar Shader personalizado
+            pastoOriginal.Effect = effect;
+            pastoOriginal.Technique = "VientoPasto";
+
+            //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
+            int rows = 30;
+            int cols = 10;
+            pasto = new List<TgcMesh>();
+            //bool moverFila=false;
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    //Crear instancia de modelo
+                    TgcMesh instance = pastoOriginal.createMeshInstance(pastoOriginal.Name + i + "_" + j);
+                    instance.Effect = effect;
+                    instance.Technique = "VientoPasto";
+
+                    //Desplazarlo
+                    instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance.Scale = new Vector3(1f, 1.8f, 1f);
+
+                    pasto.Add(instance);
+                }
+            }
+        }
+
+        private TgcBoundingBox clonarBoundingBoxArbol(TgcBoundingBox bb)
+        {
+            TgcBoundingBox bbClon = bb.clone();
+            Vector3 pos = bb.calculateBoxCenter();
+            pos.Y = 0f;
+            pos.Z -= 40f;
+            pos.X -= 30f;
+            bbClon.scaleTranslate(pos, new Vector3(0.3f, 1f, 0.3f));
+            return bbClon;
+        }
+
+
+        public void inicializarEnemigos(int columnas,int filas,TgcSkeletalMesh meshOriginal, List<Enemigo> lista,float scale,float radio)
+        {
             float x=0f;
             float z=0f;
             //instanciasMalos = new List<TgcSkeletalMesh>();
@@ -469,12 +613,12 @@ namespace AlumnoEjemplos.FriesPerSecond
                 for (int q = 0; q < columnas; q++)
                 {
                     //Crear instancia de modelo
-                    TgcSkeletalMesh instance = meshOriginal.createMeshInstance(original.Name + k + "_" + q);
+                    TgcSkeletalMesh instance = meshOriginal.createMeshInstance(originalEnemigo.Name + k + "_" + q);
                     
                     do
                     {
-                        x = rand1.Next(-5000, 5000);
-                        z = rand1.Next(-5000, 5000);
+                        x = rand.Next(-5000, 5000);
+                        z = rand.Next(-5000, 5000);
                     } while (FastMath.Sqrt(x*x+z*z)<=radio);
                     //Achico el bounding box del arbol
                     //instance.BoundingBox.scaleTranslate(new Vector3(0f, 0f, 0f), new Vector3(0.5f, 0.5f, 0.5f));
@@ -488,17 +632,19 @@ namespace AlumnoEjemplos.FriesPerSecond
                     rotarMesh(instance);
 
                     instance.Scale = new Vector3(scale, scale, scale);
-                    lista.Add(instance);
+                    lista.Add(new Enemigo(instance));
                 }
             }
 
-            original.playAnimation("Walk");
-            foreach (TgcSkeletalMesh robot in lista)
+            originalEnemigo.playAnimation("Walk");
+            foreach (Enemigo enemigo in lista)
             {
-                robot.playAnimation("Walk");
+                enemigo.meshEnemigo.playAnimation("Walk");
             }
             
-        } 
+        }
+
+        #endregion
 
         public void rotarMesh(TgcSkeletalMesh mesh1)
         {
@@ -508,7 +654,60 @@ namespace AlumnoEjemplos.FriesPerSecond
             haciaDondeDebeMirar.Normalize();
             mesh1.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - mesh1.Rotation.Y) ;
         }
-        
+
+        public void orientarBala(TgcBox bala)
+        {
+            Vector3 haciaDondeDebeMirar = camaraQ3.getLookAt() - camaraQ3.getPosition();
+            haciaDondeDebeMirar.Y = 0;
+            haciaDondeDebeMirar.Normalize();
+            bala.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - bala.Rotation.Y);
+        }
+
+        #region optimizaciones
+        public int obtenerZona(Vector3 pos)
+        {
+            if (pos.X <= 0)
+            {
+                if (pos.Z <= 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 2;
+                }
+            }
+            else
+            {
+                if (pos.Z <= 0)
+                {
+                    return 3;
+                }
+                else
+                {
+                    return 4;
+                }
+            }
+        }
+
+        private List<TgcBoundingBox> obtenerListaZona(Vector3 pos)
+        {
+            switch (obtenerZona(pos))
+            {
+                case 1:
+                    return BBZona1;
+                case 2:
+                    return BBZona2;
+                case 3:
+                    return BBZona3;
+                case 4:
+                    return BBZona4;
+                default:
+                    return null;
+            }
+        }
+        #endregion
+
 
     }
 }

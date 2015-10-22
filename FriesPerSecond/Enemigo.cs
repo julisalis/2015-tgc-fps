@@ -3,11 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TgcViewer.Utils.TgcSceneLoader;
+using TgcViewer.Utils.TgcSkeletalAnimation;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
-    class Enemigo
+    public class Enemigo
     {
-        public TgcMesh meshEnemigo;
+        public TgcSkeletalMesh meshEnemigo;
+        public bool estaVivo;
+
+        public Enemigo(TgcSkeletalMesh mesh)
+        {
+            this.meshEnemigo = mesh;
+            this.estaVivo = true;
+        }
     }
 }
