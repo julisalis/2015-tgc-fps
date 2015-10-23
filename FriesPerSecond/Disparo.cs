@@ -10,12 +10,12 @@ namespace AlumnoEjemplos.FriesPerSecond
 {
     class Bala
     {
-        public TgcBox box;
+        //public TgcBox box;
         public Vector3 velocidadVectorial;
+        public TgcRay ray;
 
-        public Bala(TgcBox b)
+        public Bala()
         {
-            box = b;
             velocidadVectorial = new Vector3(0f,0f,0f);
         }
     }
