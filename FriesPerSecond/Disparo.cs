@@ -10,7 +10,6 @@ namespace AlumnoEjemplos.FriesPerSecond
 {
     class Bala
     {
-        //public TgcBox box;
         public Vector3 velocidadVectorial;
         public TgcRay ray;
 
