@@ -623,7 +623,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Cargar Shader personalizado
             //meshOriginal.Effect = enemigoEffect;
-            meshOriginal.Technique = "RenderScene";
+            //meshOriginal.Technique = "RenderScene";
             float x = 0f;
             float z = 0f;
             //instanciasMalos = new List<TgcSkeletalMesh>();
