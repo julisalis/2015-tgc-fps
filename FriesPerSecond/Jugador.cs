@@ -8,7 +8,7 @@ namespace AlumnoEjemplos.FriesPerSecond
     class Jugador
     {
         int vida = 100;
-        public static List<Disparo> disparos = new List<Disparo>();
+        public static List<Bala> disparos = new List<Bala>();
 
         public Jugador()
         {

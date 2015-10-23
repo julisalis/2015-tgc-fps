@@ -1,14 +1,22 @@
-﻿using System;
+﻿using Microsoft.DirectX;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TgcViewer.Utils.TgcGeometry;
 using TgcViewer.Utils.TgcSceneLoader;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
-    class Disparo
+    class Bala
     {
-        public TgcMesh meshDisparo;
+        public TgcBox box;
+        public Vector3 velocidadVectorial;
 
+        public Bala(TgcBox b)
+        {
+            box = b;
+            velocidadVectorial = new Vector3(0f,0f,0f);
+        }
     }
 }

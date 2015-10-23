@@ -19,7 +19,7 @@ using TgcViewer.Utils.Shaders;
 
 namespace AlumnoEjemplos.FriesPerSecond
 {
-    
+
     /// <summary>
     /// Ejemplo del alumno
     /// </summary>
@@ -42,17 +42,17 @@ namespace AlumnoEjemplos.FriesPerSecond
         List<TgcBoundingBox> BBZona2;
         List<TgcBoundingBox> BBZona3;
         List<TgcBoundingBox> BBZona4;
-        List<TgcBox> balasDisp;
-        List<TgcBox> balasEnVuelo;
+        List<Bala> balasDisp;
+        List<Bala> balasEnVuelo;
         //List<TgcMesh> arboles;
         //List<List<TgcMesh>> zonas;
         TgcText2d vida;
         Vector2 posicionArmaDisparo;
         Vector2 posicionArmaOriginal;
-
-        TgcBox box;
+        //Vector3 velocidadVectorialBala;
 
         Effect effect;
+        Effect enemigoEffect;
         float time;
         Random rand;
 
@@ -85,7 +85,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadCorrer = 1500f;
         float ruedita;
         float velocidadEnemigos = -3f;
-        float velocidadBala = 2f;
+        float velocidadBala = 100000f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -137,6 +137,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
             effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
+            enemigoEffect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\enemigo.fx");
 
             Control focusWindows = GuiController.Instance.D3dDevice.CreationParameters.FocusWindow;
             mouseCenter = focusWindows.PointToScreen(
@@ -153,8 +154,8 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             TgcMp3Player player = GuiController.Instance.Mp3Player;
 
-            player.play(true);         
-            
+            player.play(true);
+
             //Crear Sprite
             mira = new TgcSprite();
             mira.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\mira.png");
@@ -176,14 +177,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             mira.Position = new Vector2(FastMath.Max(screenSize.Width / 2 - (textureSize.Width * 0.6f) / 2, 0), FastMath.Max(screenSize.Height / 2 - (textureSize.Height * 0.6f) / 2, 0));
 
             mira_zoom.Scaling = new Vector2((float)screenSize.Width / mira_zoom.Texture.Size.Width, (float)screenSize.Height / mira_zoom.Texture.Size.Height);
-            mira_zoom.Position = new Vector2(0,0);
+            mira_zoom.Position = new Vector2(0, 0);
 
             Size armaSize = arma.Texture.Size;
             float escalaAncho = (screenSize.Width / 2f) / armaSize.Width;
 
             arma.Scaling = new Vector2(escalaAncho, escalaAncho);
             arma.Position = new Vector2(screenSize.Width - (armaSize.Width * escalaAncho), screenSize.Height - (armaSize.Height * escalaAncho));
-            
+
             posicionArmaDisparo = new Vector2(arma.Position.X + 5f, arma.Position.Y + 5f);
             posicionArmaOriginal = arma.Position;
 
@@ -199,7 +200,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             inicializarArboles();
             inicializarPasto();
-            
+
 
             //Crear texto 1, básico
             vida = new TgcText2d();
@@ -236,7 +237,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Modifiers.addFloat("valorFloat", -50f, 200f, 0f);
 
             //Crear un modifier para un ComboBox con opciones
-            string[] opciones = new string[]{"opcion1", "opcion2", "opcion3"};
+            string[] opciones = new string[] { "opcion1", "opcion2", "opcion3" };
             GuiController.Instance.Modifiers.addInterval("valorIntervalo", opciones, 0);
 
             //Crear un modifier para modificar un vértice
@@ -249,7 +250,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //GuiController.Instance.RotCamera.Enable = true;
             //Configurar centro al que se mira y distancia desde la que se mira
             //GuiController.Instance.RotCamera.setCamera(new Vector3(0, 0, 0), 300);
-            Vector3 posicion = new Vector3(0f,150f,0f);
+            Vector3 posicion = new Vector3(0f, 150f, 0f);
             /*GuiController.Instance.FpsCamera.Enable = true;
             GuiController.Instance.FpsCamera.setCamera(new Vector3(0,120,0), new Vector3(1, 0, 1));
             //GuiController.Instance.FpsCamera.LookAt(new Vector3(0,120,0));
@@ -276,15 +277,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             //El ultimo parametro es el radio
             inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 100.0f);
 
-            balasDisp = new List<TgcBox>();
-            balasEnVuelo = new List<TgcBox>();
+            balasDisp = new List<Bala>();
+            balasEnVuelo = new List<Bala>();
             for (int i = 0; i < 15; i++)
             {
-                TgcBox bala = TgcBox.fromSize(new Vector3(10f,5f,10f),Color.Red);
+                TgcBox box = TgcBox.fromSize(new Vector3(10f, 5f, 10f), Color.Red);
+                Bala bala = new Bala(box);
                 balasDisp.Add(bala);
             }
         }
-        
+
         public override void render(float elapsedTime)
         {
             //Device de DirectX para renderizar
@@ -303,13 +305,33 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.render();
             skyBox.render();
 
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                if (balasDisp.Count > 0)
+                {
+                    Bala bala = balasDisp[0];
+                    bala.box.Position = camaraQ3.getPosition();
+                    bala.box.Position -= new Vector3(0f, 10f, 0f);
+                    bala.velocidadVectorial = camaraQ3.getLookAt() - camaraQ3.getPosition();
+                    //orientarBala(bala);
+                    bala.box.updateValues();
+                    balasEnVuelo.Add(bala);
+                    balasDisp.Remove(bala);
+                }
+            }
+
+            foreach (Bala b in balasEnVuelo)
+            {
+                b.box.Position = b.box.Position + b.velocidadVectorial * elapsedTime * velocidadBala;
+                b.box.render();
+            }
+            Vector3 col = new Vector3(0f, 0f, 0f);
             //Renderizar original e instancias (no dibujo original, solo instancias)
             //original.animateAndRender();
             foreach (Enemigo enemigo in instanciasEnemigos)
             {
                 if (enemigo.estaVivo)
                 {
-                    enemigo.meshEnemigo.animateAndRender();
                     enemigo.meshEnemigo.BoundingBox.render();
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
@@ -320,12 +342,26 @@ namespace AlumnoEjemplos.FriesPerSecond
                             enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos);
                         }
                     }
+                    foreach (Bala b in balasEnVuelo)
+                    {
+                        //TgcCollisionUtils.BoxBoxResult result = TgcCollisionUtils.classifyBoxBox(b.BoundingBox,enem.meshEnemigo.BoundingBox);
+                        if (TgcCollisionUtils.intersectRayAABB(new TgcRay(b.box.Position, b.velocidadVectorial), enemigo.meshEnemigo.BoundingBox, out col))
+                        {
+                            enemigo.estaVivo = false;
+                            balasDisp.Add(b);
+                            balasEnVuelo.Remove(b);
+                            enemigo.meshEnemigo.Effect = enemigoEffect;
+                            enemigo.meshEnemigo.Technique = "RenderScene";
+                            break;
+                        }
+                    }
                 }
-                
+                enemigo.meshEnemigo.animateAndRender();
             }
 
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
             effect.SetValue("time", time);
+            enemigoEffect.SetValue("time", time);
 
             //Renderizar instancias
             renderizarTodosLosArboles();
@@ -335,38 +371,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             //DIBUJOS 2D
             renderSprites(input);
 
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
-            {
-                if (balasDisp.Count > 0)
-                {
-                    TgcBox bala = balasDisp[0];
-                    bala.Position = camaraQ3.getPosition();
-                    bala.Position -= new Vector3(0f,10f, 0f);
-                    orientarBala(bala);
-                    bala.updateValues();
-                    balasEnVuelo.Add(bala);
-                    balasDisp.Remove(bala);
-                }
-                
-                
-            }
-
-            foreach (TgcBox b in balasEnVuelo)
-            {
-                b.moveOrientedY(velocidadBala);
-                b.render();
-                //b.BoundingBox.render();
-            }
-            
-
+            /*ctor3 col = new Vector3(0f, 0f, 0f);
             foreach (Enemigo enem in instanciasEnemigos)
             {
                 if (enem.estaVivo)
                 {
                     foreach (TgcBox b in balasEnVuelo)
                     {
-                        TgcCollisionUtils.BoxBoxResult result = TgcCollisionUtils.classifyBoxBox(b.BoundingBox, enem.meshEnemigo.BoundingBox);
-                        if (result == TgcCollisionUtils.BoxBoxResult.Adentro || result == TgcCollisionUtils.BoxBoxResult.Atravesando)
+                        //TgcCollisionUtils.BoxBoxResult result = TgcCollisionUtils.classifyBoxBox(b.BoundingBox,enem.meshEnemigo.BoundingBox);
+                        if (TgcCollisionUtils.intersectRayAABB(new TgcRay(b.Position,velocidadVectorialBala),enem.meshEnemigo.BoundingBox,out col))
                         {
                             enem.estaVivo = false;
                             balasDisp.Add(b);
@@ -375,7 +388,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                         }
                     }
                 }
-            }
+            }*/
 
             vida.render();
 
@@ -480,6 +493,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         /// </summary>
         public override void close()
         {
+            enemigoEffect.Dispose();
             effect.Dispose();
             originalEnemigo.dispose();
         }
@@ -499,7 +513,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Right, texturesPath + "//FullMoon//left.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Front, texturesPath + "//FullMoon//front.png");
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "//FullMoon//back.png");
-            skyBox.SkyEpsilon =50f;
+            skyBox.SkyEpsilon = 50f;
             skyBox.updateValues();
 
             //Crear piso
@@ -541,6 +555,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
                     instance.Effect = effect;
                     instance.Technique = "RenderScene";
+                    instance.AlphaBlendEnable = true;
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
@@ -560,6 +575,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcSceneLoader loader1 = new TgcSceneLoader();
             scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Arbusto\\Arbusto-TgcScene.xml");
             pastoOriginal = scene.Meshes[0];
+            pastoOriginal.AlphaBlendEnable = true;
 
             //Cargar Shader personalizado
             pastoOriginal.Effect = effect;
@@ -579,10 +595,11 @@ namespace AlumnoEjemplos.FriesPerSecond
                     TgcMesh instance = pastoOriginal.createMeshInstance(pastoOriginal.Name + i + "_" + j);
                     instance.Effect = effect;
                     instance.Technique = "VientoPasto";
+                    instance.AlphaBlendEnable = true;
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
-                    instance.Scale = new Vector3(1f, 1.8f, 1f);
+                    instance.Scale = new Vector3(1f, 1f, 1f) * 3f;
 
                     pasto.Add(instance);
                 }
@@ -601,10 +618,14 @@ namespace AlumnoEjemplos.FriesPerSecond
         }
 
 
-        public void inicializarEnemigos(int columnas,int filas,TgcSkeletalMesh meshOriginal, List<Enemigo> lista,float scale,float radio)
+        public void inicializarEnemigos(int columnas, int filas, TgcSkeletalMesh meshOriginal, List<Enemigo> lista, float scale, float radio)
         {
-            float x=0f;
-            float z=0f;
+
+            //Cargar Shader personalizado
+            meshOriginal.Effect = enemigoEffect;
+            meshOriginal.Technique = "RenderScene";
+            float x = 0f;
+            float z = 0f;
             //instanciasMalos = new List<TgcSkeletalMesh>();
             //int rowsRobot = 3;
             //int colsRobot = 3;
@@ -614,15 +635,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     //Crear instancia de modelo
                     TgcSkeletalMesh instance = meshOriginal.createMeshInstance(originalEnemigo.Name + k + "_" + q);
-                    
                     do
                     {
                         x = rand.Next(-5000, 5000);
                         z = rand.Next(-5000, 5000);
-                    } while (FastMath.Sqrt(x*x+z*z)<=radio);
+                    } while (FastMath.Sqrt(x * x + z * z) <= radio);
                     //Achico el bounding box del arbol
                     //instance.BoundingBox.scaleTranslate(new Vector3(0f, 0f, 0f), new Vector3(0.5f, 0.5f, 0.5f));
-                    
+
 
                     //instance.rotateY(FastMath.Atan(3f));
                     //Desplazarlo
@@ -641,7 +661,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 enemigo.meshEnemigo.playAnimation("Walk");
             }
-            
+
         }
 
         #endregion
@@ -650,14 +670,14 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
             Vector3 haciaDondeDebeMirar;
             haciaDondeDebeMirar = mesh1.Position - camaraQ3.getPosition();
-            haciaDondeDebeMirar.Y=0;
+            haciaDondeDebeMirar.Y = 0;
             haciaDondeDebeMirar.Normalize();
-            mesh1.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - mesh1.Rotation.Y) ;
+            mesh1.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - mesh1.Rotation.Y);
         }
 
         public void orientarBala(TgcBox bala)
         {
-            Vector3 haciaDondeDebeMirar = camaraQ3.getLookAt() - camaraQ3.getPosition();
+            Vector3 haciaDondeDebeMirar = camaraQ3.getPosition() - camaraQ3.getLookAt();
             haciaDondeDebeMirar.Y = 0;
             haciaDondeDebeMirar.Normalize();
             bala.rotateY((float)FastMath.Atan2(haciaDondeDebeMirar.X, haciaDondeDebeMirar.Z) - bala.Rotation.Y);
