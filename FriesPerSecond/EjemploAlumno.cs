@@ -49,6 +49,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcText2d vida;
         Vector2 posicionArmaDisparo;
         Vector2 posicionArmaOriginal;
+        TgcBox boxBala;
         //Vector3 velocidadVectorialBala;
 
         Effect effect;
@@ -65,6 +66,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcBoundingBox boundingCamara;
         Vector3 boundingCamScale;
         Vector3 ultimaPosCamara;
+        Vector3 col;
 
         //Mira
         TgcSprite mira;
@@ -85,7 +87,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadCorrer = 1500f;
         float ruedita;
         float velocidadEnemigos = -3f;
-        float velocidadBala = 100000f;
+        float velocidadBala = 1000f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -277,14 +279,12 @@ namespace AlumnoEjemplos.FriesPerSecond
             //El ultimo parametro es el radio
             inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 100.0f);
 
-            balasDisp = new List<Bala>();
+            col = new Vector3(0f, 0f, 0f);
+            //balasDisp = new List<Bala>();
             balasEnVuelo = new List<Bala>();
-            for (int i = 0; i < 15; i++)
-            {
-                TgcBox box = TgcBox.fromSize(new Vector3(10f, 5f, 10f), Color.Red);
-                Bala bala = new Bala(box);
-                balasDisp.Add(bala);
-            }
+            boxBala = TgcBox.fromSize(new Vector3(10f, 5f, 10f), Color.Red);
+            //balasDisp.Add(bala);
+            
         }
 
         public override void render(float elapsedTime)
@@ -305,33 +305,33 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso.render();
             skyBox.render();
 
+            //Emitir un disparo
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                if (balasDisp.Count > 0)
-                {
-                    Bala bala = balasDisp[0];
-                    bala.box.Position = camaraQ3.getPosition();
-                    bala.box.Position -= new Vector3(0f, 10f, 0f);
-                    bala.velocidadVectorial = camaraQ3.getLookAt() - camaraQ3.getPosition();
-                    //orientarBala(bala);
-                    bala.box.updateValues();
-                    balasEnVuelo.Add(bala);
-                    balasDisp.Remove(bala);
-                }
+                Bala unaBala = new Bala(boxBala);
+                unaBala.box.Position = camaraQ3.getPosition();
+                unaBala.box.Position -= new Vector3(0f, 10f, 0f);
+                unaBala.velocidadVectorial = camaraQ3.getLookAt() - camaraQ3.getPosition();
+                unaBala.box.updateValues();
+                balasEnVuelo.Add(unaBala);
             }
 
+            //Mover las balas en vuelo
             foreach (Bala b in balasEnVuelo)
             {
                 b.box.Position = b.box.Position + b.velocidadVectorial * elapsedTime * velocidadBala;
                 b.box.render();
             }
-            Vector3 col = new Vector3(0f, 0f, 0f);
+
+            
+
             //Renderizar original e instancias (no dibujo original, solo instancias)
             //original.animateAndRender();
             foreach (Enemigo enemigo in instanciasEnemigos)
             {
                 if (enemigo.estaVivo)
                 {
+                    enemigo.meshEnemigo.animateAndRender();
                     enemigo.meshEnemigo.BoundingBox.render();
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
@@ -348,15 +348,16 @@ namespace AlumnoEjemplos.FriesPerSecond
                         if (TgcCollisionUtils.intersectRayAABB(new TgcRay(b.box.Position, b.velocidadVectorial), enemigo.meshEnemigo.BoundingBox, out col))
                         {
                             enemigo.estaVivo = false;
-                            balasDisp.Add(b);
+                            //balasDisp.Add(b);
                             balasEnVuelo.Remove(b);
                             //enemigo.meshEnemigo.Effect = enemigoEffect;
-                            enemigo.meshEnemigo.Technique = "RenderScene";
+                            //enemigo.meshEnemigo.Technique = "RenderScene";
                             break;
                         }
                     }
+                    
                 }
-                enemigo.meshEnemigo.animateAndRender();
+                
             }
 
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
@@ -370,25 +371,6 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //DIBUJOS 2D
             renderSprites(input);
-
-            /*ctor3 col = new Vector3(0f, 0f, 0f);
-            foreach (Enemigo enem in instanciasEnemigos)
-            {
-                if (enem.estaVivo)
-                {
-                    foreach (TgcBox b in balasEnVuelo)
-                    {
-                        //TgcCollisionUtils.BoxBoxResult result = TgcCollisionUtils.classifyBoxBox(b.BoundingBox,enem.meshEnemigo.BoundingBox);
-                        if (TgcCollisionUtils.intersectRayAABB(new TgcRay(b.Position,velocidadVectorialBala),enem.meshEnemigo.BoundingBox,out col))
-                        {
-                            enem.estaVivo = false;
-                            balasDisp.Add(b);
-                            balasEnVuelo.Remove(b);
-                            break;
-                        }
-                    }
-                }
-            }*/
 
             vida.render();
 
