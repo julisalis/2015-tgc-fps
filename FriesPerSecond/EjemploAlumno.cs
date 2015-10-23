@@ -52,7 +52,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Vector3 velocidadVectorialBala;
 
         Effect effect;
-        Effect enemigoEffect;
+        //Effect enemigoEffect;
         float time;
         Random rand;
 
@@ -137,7 +137,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
             effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
-            enemigoEffect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\enemigo.fx");
+            //enemigoEffect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\enemigo.fx");
 
             Control focusWindows = GuiController.Instance.D3dDevice.CreationParameters.FocusWindow;
             mouseCenter = focusWindows.PointToScreen(
@@ -350,7 +350,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                             enemigo.estaVivo = false;
                             balasDisp.Add(b);
                             balasEnVuelo.Remove(b);
-                            enemigo.meshEnemigo.Effect = enemigoEffect;
+                            //enemigo.meshEnemigo.Effect = enemigoEffect;
                             enemigo.meshEnemigo.Technique = "RenderScene";
                             break;
                         }
@@ -361,7 +361,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
             effect.SetValue("time", time);
-            enemigoEffect.SetValue("time", time);
+            //enemigoEffect.SetValue("time", time);
 
             //Renderizar instancias
             renderizarTodosLosArboles();
@@ -493,7 +493,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         /// </summary>
         public override void close()
         {
-            enemigoEffect.Dispose();
+            //enemigoEffect.Dispose();
             effect.Dispose();
             originalEnemigo.dispose();
         }
@@ -622,7 +622,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
 
             //Cargar Shader personalizado
-            meshOriginal.Effect = enemigoEffect;
+            //meshOriginal.Effect = enemigoEffect;
             meshOriginal.Technique = "RenderScene";
             float x = 0f;
             float z = 0f;
