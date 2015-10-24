@@ -321,6 +321,8 @@ namespace AlumnoEjemplos.FriesPerSecond
                 if (enemigo.estaVivo)
                 {
                     enemigo.meshEnemigo.animateAndRender();
+                    //enemigo.meshEnemigo.BoundingBox.scaleTranslate(enemigo.meshEnemigo.Position, new Vector3(0.5f, 1f, 0.5f));
+                    //enemigo.meshEnemigo.updateBoundingBox();
                     enemigo.meshEnemigo.BoundingBox.render();
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
@@ -603,6 +605,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
                     //Roto el mesh
                     rotarMesh(instance);
+                    
 
                     instance.Scale = new Vector3(scale, scale, scale);
                     lista.Add(new Enemigo(instance));
