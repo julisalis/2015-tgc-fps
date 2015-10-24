@@ -156,7 +156,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             TgcMp3Player player = GuiController.Instance.Mp3Player;
 
-            //player.play(true);
+            player.play(true);
 
             //Crear Sprite
             mira = new TgcSprite();
