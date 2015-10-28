@@ -45,6 +45,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcText2d vida;
         Vector2 posicionArmaDisparo;
         Vector2 posicionArmaOriginal;
+        TgcBox personaje;
 
 
         Effect effect;
@@ -274,6 +275,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             boundingCamScale = new Vector3(1f, 1f, 1f);
             boundingCamara.scaleTranslate(posBound, boundingCamScale);
 
+            personaje = TgcBox.fromSize(new Vector3(30f, 60f, 30f), Color.Red);
+            personaje.Position = camaraQ3.getPosition();
+            personaje.move(new Vector3(0f, -30f, 0f));
+            
+           
             //ENEMIGOS          
             instanciasEnemigos = new List<Enemigo>();
             //El ultimo parametro es el radio
@@ -297,6 +303,20 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcD3dInput input = GuiController.Instance.D3dInput;
 
             camaraQ3.updateCamera();
+            
+            //El personaje es una caja, uso su bounding box para detectar colisiones
+            personaje.Position = camaraQ3.getPosition();
+            personaje.move(new Vector3(0f, -30f, 0f));
+            //personaje.render();
+            personaje.BoundingBox.render();
+            
+            foreach (TgcBoundingBox item in obtenerListaZona(ultimaPosCamara))
+            {
+                if (TgcCollisionUtils.testAABBAABB(personaje.BoundingBox,item))
+                {
+                    camaraQ3.setCamera(ultimaPosCamara, camaraQ3.getLookAt());
+                }
+            }
 
             ajustarZoom();
 
