@@ -274,7 +274,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             camaraQ3.setCamera(posicion, posicion + new Vector3(1.0f, 0.0f, 0.0f));
             camaraQ3.RotationSpeed = velocidadAngular;
             camaraQ3.MovementSpeed = velocidadMov;
-            camaraQ3.LockCam = true;
+            camaraQ3.LockCam = false;
 
             ultimaPosCamara = camaraQ3.getPosition();
             Vector3 posBound = new Vector3(camaraQ3.getPosition().X, camaraQ3.getPosition().Y + 30, camaraQ3.getPosition().Z);
@@ -332,6 +332,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         private void menu(TgcD3dInput input)
         {
+            camaraQ3.LockCam = false;
             GuiController.Instance.Drawer2D.beginDrawSprite();
             
             //Dibujo menu
@@ -347,6 +348,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         private void jugar(TgcD3dInput input)
         {
+            camaraQ3.LockCam = true;
             camaraQ3.updateCamera();
 
             //El personaje es una caja, uso su bounding box para detectar colisiones
