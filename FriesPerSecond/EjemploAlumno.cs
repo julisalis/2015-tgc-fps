@@ -97,6 +97,13 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Camara
         Q3FpsCamera camaraQ3;
 
+        //Estado juego
+        enum estado { jugar, menu };
+        estado estadoJuego;
+
+        //Menu
+        TgcSprite fondoMenu;
+
         /// <summary>
         /// Categoría a la que pertenece el ejemplo.
         /// Influye en donde se va a haber en el árbol de la derecha de la pantalla.
@@ -290,6 +297,12 @@ namespace AlumnoEjemplos.FriesPerSecond
             huboDisparo = false;
             unaBala = new Bala();
             puntoDisparo = TgcBox.fromSize(new Vector3(10f, 10f, 10f), Color.Red);
+
+            //Defino el estado inicial como menu
+            estadoJuego = estado.menu;
+            //Sprites para menu
+            fondoMenu = new TgcSprite();
+            fondoMenu.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\fondo_menu.jpg");
             
             
         }
@@ -301,18 +314,50 @@ namespace AlumnoEjemplos.FriesPerSecond
             time += elapsedTime;
 
             TgcD3dInput input = GuiController.Instance.D3dInput;
-
-            camaraQ3.updateCamera();
             
+            switch (estadoJuego)
+            {
+                case estado.menu:
+                    menu(input);
+                    break;
+                case estado.jugar:
+                    jugar(input);
+                    break;
+
+            }
+
+               
+
+        }
+
+        private void menu(TgcD3dInput input)
+        {
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+            
+            //Dibujo menu
+            fondoMenu.render();
+            //Hago click para empezar a jugar
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                estadoJuego = estado.jugar;
+            }
+
+            GuiController.Instance.Drawer2D.endDrawSprite();
+        }
+
+        private void jugar(TgcD3dInput input)
+        {
+            camaraQ3.updateCamera();
+
             //El personaje es una caja, uso su bounding box para detectar colisiones
             personaje.Position = camaraQ3.getPosition();
             personaje.move(new Vector3(0f, -30f, 0f));
             //personaje.render();
             personaje.BoundingBox.render();
-            
+
             foreach (TgcBoundingBox item in obtenerListaZona(ultimaPosCamara))
             {
-                if (TgcCollisionUtils.testAABBAABB(personaje.BoundingBox,item))
+                if (TgcCollisionUtils.testAABBAABB(personaje.BoundingBox, item))
                 {
                     camaraQ3.setCamera(ultimaPosCamara, camaraQ3.getLookAt());
                 }
@@ -362,13 +407,13 @@ namespace AlumnoEjemplos.FriesPerSecond
                             puntoDisparo.render();
                             huboDisparo = false;
                         }
-                        
+
                     }
-                               
+
                 }
             }
             huboDisparo = false;
- 
+
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
             effect.SetValue("time", time);
             //enemigoEffect.SetValue("time", time);
@@ -379,8 +424,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             ultimaPosCamara = camaraQ3.getPosition();
 
             //DIBUJOS 2D
-            renderSprites(input);    
-
+            renderSprites(input);
         }
 
         private void renderSprites(TgcD3dInput input)
