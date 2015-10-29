@@ -322,7 +322,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //ENEMIGOS          
             instanciasEnemigos = new List<Enemigo>();
             //El ultimo parametro es el radio
-            inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 100.0f);
+            inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
 
             inicializarBarriles();
 
