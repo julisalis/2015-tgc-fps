@@ -32,6 +32,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Meshes
         TgcBox piso;
         TgcSkyBox skyBox;
+        TgcBoundingBox bbSkyBox;
         TgcSkeletalMesh originalEnemigo;
         List<Enemigo> instanciasEnemigos;
         TgcMesh palmeraOriginal;
@@ -46,15 +47,21 @@ namespace AlumnoEjemplos.FriesPerSecond
         Vector2 posicionArmaDisparo;
         Vector2 posicionArmaOriginal;
         TgcBox personaje;
+        TgcMesh barril;
+        List<TgcMesh> barriles;
 
+
+        Quadtree qt;
+        List<TgcMesh> totales;
 
         Effect effect;
-        //Effect enemigoEffect;
         float time;
         Random rand;
 
         //Sonidos
         TgcStaticSound disparo;
+        TgcStaticSound headshot;
+        TgcStaticSound golpe;
 
         protected Point mouseCenter;
 
@@ -70,6 +77,9 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         //Arma
         TgcSprite arma;
+        TgcAnimatedSprite fuegoArma;
+        int cantF = 0;
+
         //Disparo
         Bala unaBala;
         bool huboDisparo;
@@ -87,8 +97,9 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadMov = 750f;
         float velocidadCorrer = 1500f;
         float ruedita;
-        float velocidadEnemigos = -3f;
+        float velocidadEnemigos = -5f;
         float velocidadBala = 1000f;
+        float numVida = 100f;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -147,7 +158,6 @@ namespace AlumnoEjemplos.FriesPerSecond
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
             effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
-            //enemigoEffect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\enemigo.fx");
 
             Control focusWindows = GuiController.Instance.D3dDevice.CreationParameters.FocusWindow;
             mouseCenter = focusWindows.PointToScreen(
@@ -176,9 +186,22 @@ namespace AlumnoEjemplos.FriesPerSecond
             arma = new TgcSprite();
             arma.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\arma.png");
 
+            fuegoArma = new TgcAnimatedSprite(
+                GuiController.Instance.ExamplesMediaDir + "\\Texturas\\Sprites\\Explosion.png", //Textura de 256x256
+                new Size(64, 64), //Tamaño de un frame (64x64px en este caso)
+                16, //Cantidad de frames, (son 16 de 64x64px)
+                10 //Velocidad de animacion, en cuadros x segundo
+                );
+
             //Sonidos
             disparo = new TgcStaticSound();
-            disparo.loadSound(GuiController.Instance.ExamplesMediaDir + "\\Sound\\explosión, pequeña.wav");
+            disparo.loadSound(alumnoMediaFolder + "\\Sonidos\\disparo.wav");
+
+            headshot = new TgcStaticSound();
+            headshot.loadSound(alumnoMediaFolder + "\\Sonidos\\Headshot.wav");
+
+            golpe = new TgcStaticSound();
+            golpe.loadSound(alumnoMediaFolder + "\\Sonidos\\punch.wav");
 
             //Ubicarlo centrado en la pantalla
             Size screenSize = GuiController.Instance.Panel3d.Size;
@@ -198,6 +221,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             posicionArmaDisparo = new Vector2(arma.Position.X + 5f, arma.Position.Y + 5f);
             posicionArmaOriginal = arma.Position;
 
+            fuegoArma.Position = arma.Position + new Vector2(15f,17f);
+
             //Cargar malla original
             TgcSkeletalLoader loader = new TgcSkeletalLoader();
             string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
@@ -211,6 +236,13 @@ namespace AlumnoEjemplos.FriesPerSecond
             inicializarArboles();
             inicializarPasto();
 
+            totales = new List<TgcMesh>();
+            totales.AddRange(arboles);
+            totales.AddRange(pasto);
+
+            qt = new Quadtree();
+            qt.create(totales, bbSkyBox);
+            qt.createDebugQuadtreeMeshes();
 
             //Crear texto 1, básico
             vida = new TgcText2d();
@@ -292,6 +324,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             //El ultimo parametro es el radio
             inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 100.0f);
 
+            inicializarBarriles();
+
             //Para disparo
             col = new Vector3(0f, 0f, 0f);
             huboDisparo = false;
@@ -321,13 +355,9 @@ namespace AlumnoEjemplos.FriesPerSecond
                     menu(input);
                     break;
                 case estado.jugar:
-                    jugar(input);
+                    jugar(input, elapsedTime);
                     break;
-
             }
-
-               
-
         }
 
         private void menu(TgcD3dInput input)
@@ -346,28 +376,33 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
 
-        private void jugar(TgcD3dInput input)
+        private void jugar(TgcD3dInput input, float t)
         {
             camaraQ3.LockCam = true;
             camaraQ3.updateCamera();
+
+            // Cargar variables de shader, por ejemplo el tiempo transcurrido.
+            effect.SetValue("time", time);            
 
             //El personaje es una caja, uso su bounding box para detectar colisiones
             personaje.Position = camaraQ3.getPosition();
             personaje.move(new Vector3(0f, -30f, 0f));
             //personaje.render();
-            personaje.BoundingBox.render();
+            //personaje.BoundingBox.render();
 
             foreach (TgcBoundingBox item in obtenerListaZona(ultimaPosCamara))
             {
                 if (TgcCollisionUtils.testAABBAABB(personaje.BoundingBox, item))
                 {
-                    camaraQ3.setCamera(ultimaPosCamara, camaraQ3.getLookAt());
+                    camaraQ3.setPosition(ultimaPosCamara);
+                    //camaraQ3.setCamera(ultimaPosCamara, camaraQ3.getLookAt() + ultimaPosCamara);
                 }
             }
 
             ajustarZoom();
-
             ajustarVelocidad();
+
+            renderizarBarriles();
 
             //Renderizar suelo y skybox
             piso.render();
@@ -380,49 +415,82 @@ namespace AlumnoEjemplos.FriesPerSecond
                 unaBala.velocidadVectorial = camaraQ3.getLookAt() - camaraQ3.getPosition();
                 unaBala.ray = new TgcRay(posicionRayBala, unaBala.velocidadVectorial);
                 huboDisparo = true;
+                disparo.SoundBuffer.SetCurrentPosition(0);
+                disparo.play(false);
             }
 
             //Renderizar original e instancias (no dibujo original, solo instancias)   
             foreach (Enemigo enemigo in instanciasEnemigos)
             {
+                enemigo.meshEnemigo.animateAndRender();
                 if (enemigo.estaVivo)
                 {
-                    enemigo.meshEnemigo.animateAndRender();
-                    //enemigo.meshEnemigo.BoundingBox.scaleTranslate(enemigo.meshEnemigo.Position, new Vector3(0.5f, 1f, 0.5f));
-                    //enemigo.meshEnemigo.updateBoundingBox();
-                    enemigo.meshEnemigo.BoundingBox.render();
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
+                    enemigo.ultimaPosicion = enemigo.meshEnemigo.Position;
                     foreach (TgcBoundingBox bb in obtenerListaZona(enemigo.meshEnemigo.Position))
                     {
                         if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, bb))
                         {
-                            enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos);
+                            enemigo.meshEnemigo.rotateY(FastMath.PI_HALF);
+                            enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
                         }
                     }
+
+                    //enemigo colisiona contra personaje
+                    if(TgcCollisionUtils.classifyBoxBox(enemigo.meshEnemigo.BoundingBox,personaje.BoundingBox) != TgcCollisionUtils.BoxBoxResult.Afuera)
+                    {
+                        //golpe.SoundBuffer.SetCurrentPosition(0);
+                        golpe.play(false);
+                        enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos*5);
+                        camaraQ3.setPosition(ultimaPosCamara);
+                        numVida -= 20f * t;
+                    }
+
                     if (huboDisparo)
                     {
                         if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, enemigo.meshEnemigo.BoundingBox, out col))
                         {
-                            enemigo.estaVivo = false;
-                            puntoDisparo.Position = col;
-                            puntoDisparo.render();
-                            huboDisparo = false;
+                            Vector3 p = enemigo.meshEnemigo.BoundingBox.calculateBoxCenter();
+                            p.Y = 0f;
+                            TgcBoundingBox cuerpoChico = enemigo.meshEnemigo.BoundingBox.clone();
+                            cuerpoChico.scaleTranslate(p, new Vector3(1.8f, 3.2f, 1.8f));
+
+                            if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, cuerpoChico, out col))
+                            {
+                                TgcBoundingBox head = enemigo.meshEnemigo.BoundingBox.clone();
+                                head.scaleTranslate(enemigo.meshEnemigo.BoundingBox.calculateBoxCenter() + new Vector3(0.0f, 60f, 5.0f), new Vector3(0.5f, 0.5f, 0.5f));
+
+                                if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, head, out col))
+                                {
+                                    headshot.SoundBuffer.SetCurrentPosition(0);
+                                    headshot.play(false);
+                                }
+                                enemigo.estaVivo = false;
+                                puntoDisparo.Position = col;
+                                puntoDisparo.render();
+                                enemigo.meshEnemigo.Effect = enemigo.efecto;
+                                enemigo.meshEnemigo.Technique = "disparoEnemigo";
+                                huboDisparo = false;
+                            }
                         }
-
                     }
-
                 }
+                else
+                {
+                    enemigo.tiempo += t;
+                    enemigo.efecto.SetValue("time", enemigo.tiempo);
+                }
+                
             }
             huboDisparo = false;
 
-            // Cargar variables de shader, por ejemplo el tiempo transcurrido.
-            effect.SetValue("time", time);
             //enemigoEffect.SetValue("time", time);
 
             //Renderizar instancias
-            renderizarTodosLosArboles();
-            renderizarPasto();
+            //renderizarTodosLosArboles();
+            //renderizarPasto();
+            qt.render(GuiController.Instance.Frustum, false);
             ultimaPosCamara = camaraQ3.getPosition();
 
             //DIBUJOS 2D
@@ -449,13 +517,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 arma.Position = posicionArmaDisparo;
                 arma.render();
-                disparo.play(false);
                 arma.Position = posicionArmaOriginal;
+                cantF = 16;
             }
-            else if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT) && miraActivada)
+
+            if (cantF > 0)
             {
-                disparo.play(false);
+                fuegoArma.updateAndRender();
+                cantF--;
             }
+            vida.Text = "Vida: " + FastMath.Ceiling(numVida).ToString();
             vida.render();
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
@@ -517,7 +588,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 p.render();
             }
-        }     
+        }
+
+        private void renderizarBarriles()
+        {
+            foreach (TgcMesh b in barriles)
+            {
+                b.render();
+            }
+        }   
 
         #region inicializaciones
 
@@ -536,6 +615,9 @@ namespace AlumnoEjemplos.FriesPerSecond
             skyBox.setFaceTexture(TgcSkyBox.SkyFaces.Back, texturesPath + "//FullMoon//back.png");
             skyBox.SkyEpsilon = 50f;
             skyBox.updateValues();
+
+            TgcBox tb = TgcBox.fromSize(skyBox.Center, skyBox.Size);
+            bbSkyBox = tb.BoundingBox.clone();
 
             //Crear piso
             TgcTexture pisoTexture = TgcTexture.createTexture(d3dDevice, GuiController.Instance.AlumnoEjemplosMediaDir + "\\pasto2.jpg");
@@ -594,7 +676,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Cargar modelo de palmera original
             TgcSceneLoader loader1 = new TgcSceneLoader();
-            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Arbusto\\Arbusto-TgcScene.xml");
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Pasto\\Pasto-TgcScene.xml");
             pastoOriginal = scene.Meshes[0];
             pastoOriginal.AlphaBlendEnable = true;
 
@@ -604,7 +686,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 30;
-            int cols = 10;
+            int cols = 30;
             pasto = new List<TgcMesh>();
             //bool moverFila=false;
 
@@ -620,9 +702,42 @@ namespace AlumnoEjemplos.FriesPerSecond
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
-                    instance.Scale = new Vector3(1f, 1f, 1f) * 3f;
+                    instance.Scale = new Vector3(3f, 8f, 5f);
 
                     pasto.Add(instance);
+                }
+            }
+        }
+
+        private void inicializarBarriles()
+        {
+            string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+
+            //Cargar modelo de palmera original
+            TgcSceneLoader loader1 = new TgcSceneLoader();
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Objetos\\BarrilPolvora\\BarrilPolvora-TgcScene.xml");
+            barril = scene.Meshes[0];
+            //barril.AlphaBlendEnable = true;
+
+            //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
+            int rows = 1;
+            int cols = 5;
+            barriles = new List<TgcMesh>();
+            //bool moverFila=false;
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    //Crear instancia de modelo
+                    TgcMesh instance = barril.createMeshInstance(barril.Name + i + "_" + j);
+                    instance.AlphaBlendEnable = true;
+
+                    //Desplazarlo
+                    instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance.Scale = new Vector3(4f, 4f, 4f);
+
+                    barriles.Add(instance);
                 }
             }
         }
@@ -671,10 +786,15 @@ namespace AlumnoEjemplos.FriesPerSecond
 
                     //Roto el mesh
                     rotarMesh(instance);
+
+                    Effect fx = TgcShaders.loadEffect(GuiController.Instance.AlumnoEjemplosMediaDir + "Shaders\\e.fx");
                     
 
                     instance.Scale = new Vector3(scale, scale, scale);
-                    lista.Add(new Enemigo(instance));
+                    instance.AlphaBlendEnable = true;
+                    Enemigo e = new Enemigo(instance, instance.Position);
+                    e.efecto = fx;
+                    lista.Add(e);
                 }
             }
 

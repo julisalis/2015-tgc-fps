@@ -1,5 +1,5 @@
 /*
-* Shader genérico para TgcSkeletalMesh
+* Shader genÃ©rico para TgcSkeletalMesh
 * Hay 2 Techniques, una para cada MeshRenderType:
 *	- VERTEX_COLOR
 *	- DIFFUSE_MAP
@@ -236,7 +236,14 @@ technique DIFFUSE_MAP
    }
 }
 
-
+technique disparoEnemigo
+{
+	pass Pass_0
+	{
+		VertexShader = compile vs_2_0 vs_disparo();
+		PixelShader = compile ps_2_0 ps_disparo();
+	}
+}
 
 
 

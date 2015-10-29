@@ -130,6 +130,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             return eye;
         }
 
+        public void setPosition(Vector3 p)
+        {
+            eye = p;
+        }
+
         public Vector3 getLookAt()
         {
             return target;
