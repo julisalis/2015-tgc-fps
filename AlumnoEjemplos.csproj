@@ -94,6 +94,9 @@
     <Compile Include="FriesPerSecond\Q3FpsCamera.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FriesPerSecond\Quadtree.cs" />
+    <Compile Include="FriesPerSecond\QuadtreeBuilder.cs" />
+    <Compile Include="FriesPerSecond\QuadtreeNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
