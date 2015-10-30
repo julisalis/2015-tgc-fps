@@ -104,6 +104,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
         string pathMusica;
+        TgcMp3Player player;
 
         //Camara
         Q3FpsCamera camaraQ3;
@@ -114,6 +115,16 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         //Menu
         TgcSprite fondoMenu;
+        TgcSprite botonJugar;
+        TgcSprite botonInstrucciones;
+        TgcSprite botonCreditos;
+        TgcSprite botonSalir;
+        TgcSprite botonVolver;
+        Size sizeJugar;
+        Size sizeInstrucciones;
+        Size sizeCreditos;
+        Size sizeSalir;
+        Size sizeVolver;
 
         /// <summary>
         /// Categoría a la que pertenece el ejemplo.
@@ -172,9 +183,9 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Mp3Player.closeFile();
             GuiController.Instance.Mp3Player.FileName = pathMusica;
 
-            TgcMp3Player player = GuiController.Instance.Mp3Player;
+            player = GuiController.Instance.Mp3Player;
 
-            player.play(true);
+            //player.play(true);
 
             //Crear Sprite
             mira = new TgcSprite();
@@ -332,13 +343,29 @@ namespace AlumnoEjemplos.FriesPerSecond
             unaBala = new Bala();
             puntoDisparo = TgcBox.fromSize(new Vector3(10f, 10f, 10f), Color.Red);
 
+            #region menu
             //Defino el estado inicial como menu
             estadoJuego = estado.menu;
+
             //Sprites para menu
             fondoMenu = new TgcSprite();
             fondoMenu.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\fondo_menu.jpg");
+
+            botonJugar = new TgcSprite();
+            botonJugar.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_jugar.png");
+            sizeJugar = botonJugar.Texture.Size;
+            botonJugar.Position = new Vector2((screenSize.Width / 2)-sizeJugar.Width/4, (screenSize.Height / 2)-sizeJugar.Height/4);
+            botonJugar.Scaling = new Vector2(0.5f, 0.5f);
+
+            botonInstrucciones = new TgcSprite();
+            botonInstrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_instrucciones.png");
+            sizeInstrucciones = botonInstrucciones.Texture.Size;
+            botonInstrucciones.Position = new Vector2((screenSize.Width / 2) - sizeInstrucciones.Width / 4, (screenSize.Height / 2) - sizeInstrucciones.Height / 4 + 85f);
+            botonInstrucciones.Scaling = new Vector2(0.5f, 0.5f);
             
-            
+            #endregion menu
+
+
         }
 
         public override void render(float elapsedTime)
@@ -367,9 +394,13 @@ namespace AlumnoEjemplos.FriesPerSecond
             
             //Dibujo menu
             fondoMenu.render();
+            botonJugar.render();
+            botonInstrucciones.render();
+
             //Hago click para empezar a jugar
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
+                player.play(true);
                 estadoJuego = estado.jugar;
             }
 
