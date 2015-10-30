@@ -69,6 +69,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcBoundingBox boundingCamara;
         Vector3 boundingCamScale;
         Vector3 ultimaPosCamara;
+        TgcBoundingSphere boundingBarril;
 
 
         //Mira
@@ -83,6 +84,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Disparo
         Bala unaBala;
         bool huboDisparo;
+        bool disparoBarril;
         TgcBox puntoDisparo;
         Vector3 col;
         Vector3 posicionRayBala;
@@ -350,6 +352,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Para disparo
             col = new Vector3(0f, 0f, 0f);
             huboDisparo = false;
+            disparoBarril = false;
             unaBala = new Bala();
             puntoDisparo = TgcBox.fromSize(new Vector3(10f, 10f, 10f), Color.Red);
 
@@ -460,6 +463,19 @@ namespace AlumnoEjemplos.FriesPerSecond
                 disparo.SoundBuffer.SetCurrentPosition(0);
                 disparo.play(false);
             }
+            //Reviso si colisiono contra un barril si hubo disparo
+            if (huboDisparo)
+            {
+                foreach (TgcMesh barril in barriles)
+                {
+                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, barril.BoundingBox, out col))
+                    {
+                        boundingBarril = new TgcBoundingSphere(barril.BoundingBox.calculateBoxCenter(), 400f);
+                        disparoBarril = true;
+                    }
+                }
+            }
+            
 
             //Renderizar original e instancias (no dibujo original, solo instancias)   
             foreach (Enemigo enemigo in instanciasEnemigos)
@@ -491,6 +507,13 @@ namespace AlumnoEjemplos.FriesPerSecond
 
                     if (huboDisparo)
                     {
+                        if (disparoBarril)
+                        {
+                            if (TgcCollisionUtils.testSphereAABB(boundingBarril,enemigo.meshEnemigo.BoundingBox))
+                            {
+                                matarEnemigo(enemigo);
+                            }
+                        }
                         if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, enemigo.meshEnemigo.BoundingBox, out col))
                         {
                             Vector3 p = enemigo.meshEnemigo.BoundingBox.calculateBoxCenter();
@@ -509,15 +532,10 @@ namespace AlumnoEjemplos.FriesPerSecond
                                     headshot.play(false);
                                     puntaje += 20; //el headshot me da 20 puntos mas que un disparo normal
                                 }
-                                enemigo.estaVivo = false;
-                                puntoDisparo.Position = col;
-                                puntoDisparo.render();
-                                puntaje += 20;
-                                enemigo.meshEnemigo.Effect = enemigo.efecto;
-                                enemigo.meshEnemigo.Technique = "disparoEnemigo";
-                                huboDisparo = false;
+                                matarEnemigo(enemigo);
                             }
                         }
+                        
                     }
                 }
                 else
@@ -528,6 +546,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 
             }
             huboDisparo = false;
+            disparoBarril = false;
 
             //enemigoEffect.SetValue("time", time);
 
@@ -539,6 +558,18 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //DIBUJOS 2D
             renderSprites(input);
+        }
+
+        private void matarEnemigo(Enemigo enemigo)
+        {
+            enemigo.estaVivo = false;
+            puntoDisparo.Position = col;
+            puntoDisparo.render();
+            puntaje += 20;
+            enemigo.meshEnemigo.Effect = enemigo.efecto;
+            enemigo.meshEnemigo.Technique = "disparoEnemigo";
+            
+            //disparoBarril = false;
         }
 
         private void renderSprites(TgcD3dInput input)
