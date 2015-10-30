@@ -62,6 +62,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcStaticSound disparo;
         TgcStaticSound headshot;
         TgcStaticSound golpe;
+        TgcStaticSound explosion;
 
         protected Point mouseCenter;
 
@@ -218,6 +219,9 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             golpe = new TgcStaticSound();
             golpe.loadSound(alumnoMediaFolder + "\\Sonidos\\punch.wav");
+
+            explosion = new TgcStaticSound();
+            explosion.loadSound(alumnoMediaFolder + "\\Sonidos\\explosion.wav");
 
             //Ubicarlo centrado en la pantalla
             Size screenSize = GuiController.Instance.Panel3d.Size;
@@ -469,9 +473,12 @@ namespace AlumnoEjemplos.FriesPerSecond
                 foreach (TgcMesh barril in barriles)
                 {
                     if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, barril.BoundingBox, out col))
-                    {
+                    {   
                         boundingBarril = new TgcBoundingSphere(barril.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
+                        explosion.SoundBuffer.SetCurrentPosition(0);
+                        explosion.play(false);
+                        break;
                     }
                 }
             }
