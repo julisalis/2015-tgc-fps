@@ -48,6 +48,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         Vector2 posicionArmaOriginal;
         TgcBox personaje;
         TgcMesh barril;
+        TgcMesh barrilDisparado;
         List<TgcMesh> barriles;
 
 
@@ -470,16 +471,22 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Reviso si colisiono contra un barril si hubo disparo
             if (huboDisparo)
             {
-                foreach (TgcMesh barril in barriles)
+                foreach (TgcMesh b in barriles)
                 {
-                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, barril.BoundingBox, out col))
+                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.BoundingBox, out col))
                     {   
-                        boundingBarril = new TgcBoundingSphere(barril.BoundingBox.calculateBoxCenter(), 400f);
+                        boundingBarril = new TgcBoundingSphere(b.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
+                        barrilDisparado = b;
                         explosion.SoundBuffer.SetCurrentPosition(0);
                         explosion.play(false);
                         break;
                     }
+                }
+                if (barrilDisparado!=null)
+                {
+                    barriles.Remove(barrilDisparado);
+                    barrilDisparado = null;
                 }
             }
             
