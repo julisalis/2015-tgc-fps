@@ -100,6 +100,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadEnemigos = -5f;
         float velocidadBala = 1000f;
         float numVida = 100f;
+        int puntaje;
+        TgcText2d textoPuntaje;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -112,6 +114,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Estado juego
         enum estado { jugar, menu };
         estado estadoJuego;
+        
 
         //Menu
         TgcSprite fondoMenu;
@@ -255,12 +258,19 @@ namespace AlumnoEjemplos.FriesPerSecond
             qt.create(totales, bbSkyBox);
             qt.createDebugQuadtreeMeshes();
 
-            //Crear texto 1, básico
+            //Crear texto vida, básico
             vida = new TgcText2d();
             vida.Text = "Vida: 100";
             vida.Color = Color.Red;
             vida.Size = new Size(300, 100);
             vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
+
+            textoPuntaje = new TgcText2d();
+            textoPuntaje.Text = "Puntos: 0";
+            textoPuntaje.Color = Color.Red;
+            textoPuntaje.Size = new Size(300, 100);
+            textoPuntaje.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
+            textoPuntaje.Position = new Point(screenSize.Width - 300, 0);
 
 
             //////VARIABLES DE FRUSTUM
@@ -401,6 +411,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
                 player.play(true);
+                puntaje = 0;
                 estadoJuego = estado.jugar;
             }
 
@@ -486,20 +497,22 @@ namespace AlumnoEjemplos.FriesPerSecond
                             p.Y = 0f;
                             TgcBoundingBox cuerpoChico = enemigo.meshEnemigo.BoundingBox.clone();
                             cuerpoChico.scaleTranslate(p, new Vector3(1.8f, 3.2f, 1.8f));
-
+                            //se evalua si la bala dio contra el enemigo
                             if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, cuerpoChico, out col))
                             {
                                 TgcBoundingBox head = enemigo.meshEnemigo.BoundingBox.clone();
                                 head.scaleTranslate(enemigo.meshEnemigo.BoundingBox.calculateBoxCenter() + new Vector3(0.0f, 60f, 5.0f), new Vector3(0.5f, 0.5f, 0.5f));
-
+                                //se evalua si fue un headshot
                                 if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, head, out col))
                                 {
                                     headshot.SoundBuffer.SetCurrentPosition(0);
                                     headshot.play(false);
+                                    puntaje += 20; //el headshot me da 20 puntos mas que un disparo normal
                                 }
                                 enemigo.estaVivo = false;
                                 puntoDisparo.Position = col;
                                 puntoDisparo.render();
+                                puntaje += 20;
                                 enemigo.meshEnemigo.Effect = enemigo.efecto;
                                 enemigo.meshEnemigo.Technique = "disparoEnemigo";
                                 huboDisparo = false;
@@ -559,6 +572,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             }
             vida.Text = "Vida: " + FastMath.Ceiling(numVida).ToString();
             vida.render();
+            textoPuntaje.Text = "Puntos: " + puntaje;
+            textoPuntaje.render();
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
