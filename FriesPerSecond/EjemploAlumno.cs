@@ -116,7 +116,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         Q3FpsCamera camaraQ3;
 
         //Estado juego
-        enum estado { jugar, menu, instrucciones, creditos };
+        enum estado { jugar, menu, instrucciones, creditos, muerto };
         estado estadoJuego;
         Size screenSize;
         
@@ -376,7 +376,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             titulo = new TgcSprite();
             titulo.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\titulo.png");
             titulo.Scaling = new Vector2(0.5f, 0.5f);
-            titulo.Position = new Vector2((screenSize.Width / 2) - titulo.Texture.Width / 4, (titulo.Texture.Height / 2)-50f);
+            titulo.Position = new Vector2((screenSize.Width / 2) - titulo.Texture.Width / 4, (titulo.Texture.Height / 2)-50f);      
 
             instrucciones = new TgcSprite();
             instrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\instrucciones.png");
@@ -389,33 +389,29 @@ namespace AlumnoEjemplos.FriesPerSecond
             creditos.Position = new Vector2((screenSize.Width / 2) - creditos.Texture.Width / 4, (creditos.Texture.Height / 2) - creditos.Texture.Height / 2);
 
             botonJugar = new TgcSprite();
-            botonJugar.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_jugar.png");
-            
+            botonJugar.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_jugar.png"); 
             botonJugar.Scaling = new Vector2(0.5f, 0.5f);
             sizeJugar = botonJugar.Texture.Size;
+           // sizeJugar.Width = sizeJugar.Width / 2;
             botonJugar.Position = new Vector2((screenSize.Width / 2)-sizeJugar.Width/4, (screenSize.Height / 2)-sizeJugar.Height/4);
-            
+
 
             botonInstrucciones = new TgcSprite();
             botonInstrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_instrucciones.png");
-            
             botonInstrucciones.Scaling = new Vector2(0.5f, 0.5f);
             sizeInstrucciones = botonInstrucciones.Texture.Size;
+            //sizeInstrucciones.Width = sizeInstrucciones.Width / 2;
             botonInstrucciones.Position = new Vector2((screenSize.Width / 2) - sizeInstrucciones.Width / 4, (screenSize.Height / 2) - sizeInstrucciones.Height / 4 + 85f);
-           
-
+            
+                  
             botonCreditos = new TgcSprite();
             botonCreditos.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_creditos.png");
-           
             botonCreditos.Scaling = new Vector2(0.5f, 0.5f);
             sizeCreditos = botonCreditos.Texture.Size;
+            //sizeCreditos.Width = sizeCreditos.Width / 2;
             botonCreditos.Position = new Vector2((screenSize.Width / 2) - sizeCreditos.Width / 4, (screenSize.Height / 2) - sizeCreditos.Height / 4 + sizeInstrucciones.Height + 50f);
             
             
-
-            
-
-
             
             #endregion menu
 
@@ -444,7 +440,22 @@ namespace AlumnoEjemplos.FriesPerSecond
                 case estado.creditos:
                     verCreditos();
                     break;
+                case estado.muerto:
+                    cartelMuerte(input);
+                    break;
             }
+        }
+
+        private void cartelMuerte(TgcD3dInput input)
+        {
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+            fondoMenu.render();
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                estadoJuego = estado.menu;
+            }
+            GuiController.Instance.Drawer2D.endDrawSprite();
+            player.stop();
         }
 
         private void verCreditos()
@@ -502,6 +513,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         private bool obtenerColisionConBoton(TgcSprite boton,Size tam)
         {
             Point mouse = Control.MousePosition;
+
             return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
 
         }
@@ -598,6 +610,10 @@ namespace AlumnoEjemplos.FriesPerSecond
                         enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos*5);
                         camaraQ3.setPosition(ultimaPosCamara);
                         numVida -= 20f * t;
+                        if (numVida<=0)
+                        {
+                            estadoJuego = estado.muerto;
+                        }
                     }
 
                     if (huboDisparo)
