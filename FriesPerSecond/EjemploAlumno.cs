@@ -116,13 +116,16 @@ namespace AlumnoEjemplos.FriesPerSecond
         Q3FpsCamera camaraQ3;
 
         //Estado juego
-        enum estado { jugar, menu };
+        enum estado { jugar, menu, instrucciones, creditos };
         estado estadoJuego;
         Size screenSize;
         
 
         //Menu
         TgcSprite fondoMenu;
+        TgcSprite titulo;
+        TgcSprite instrucciones;
+        TgcSprite creditos;
         TgcSprite botonJugar;
         TgcSprite botonInstrucciones;
         TgcSprite botonCreditos;
@@ -370,23 +373,47 @@ namespace AlumnoEjemplos.FriesPerSecond
             fondoMenu = new TgcSprite();
             fondoMenu.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\fondo_menu.jpg");
 
+            titulo = new TgcSprite();
+            titulo.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\titulo.png");
+            titulo.Scaling = new Vector2(0.5f, 0.5f);
+            titulo.Position = new Vector2((screenSize.Width / 2) - titulo.Texture.Width / 4, (titulo.Texture.Height / 2)-50f);
+
+            instrucciones = new TgcSprite();
+            instrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\instrucciones.png");
+            instrucciones.Scaling = new Vector2(0.5f, 0.5f);
+            instrucciones.Position = new Vector2((screenSize.Width / 2) - instrucciones.Texture.Width / 4, (instrucciones.Texture.Height / 2) - instrucciones.Texture.Height / 2);
+
+            creditos = new TgcSprite();
+            creditos.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\creditos.png");
+            creditos.Scaling = new Vector2(0.5f, 0.5f);
+            creditos.Position = new Vector2((screenSize.Width / 2) - creditos.Texture.Width / 4, (creditos.Texture.Height / 2) - creditos.Texture.Height / 2);
+
             botonJugar = new TgcSprite();
             botonJugar.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_jugar.png");
+            
+            botonJugar.Scaling = new Vector2(0.5f, 0.5f);
             sizeJugar = botonJugar.Texture.Size;
             botonJugar.Position = new Vector2((screenSize.Width / 2)-sizeJugar.Width/4, (screenSize.Height / 2)-sizeJugar.Height/4);
-            botonJugar.Scaling = new Vector2(0.5f, 0.5f);
+            
 
             botonInstrucciones = new TgcSprite();
             botonInstrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_instrucciones.png");
+            
+            botonInstrucciones.Scaling = new Vector2(0.5f, 0.5f);
             sizeInstrucciones = botonInstrucciones.Texture.Size;
             botonInstrucciones.Position = new Vector2((screenSize.Width / 2) - sizeInstrucciones.Width / 4, (screenSize.Height / 2) - sizeInstrucciones.Height / 4 + 85f);
-            botonInstrucciones.Scaling = new Vector2(0.5f, 0.5f);
+           
 
             botonCreditos = new TgcSprite();
             botonCreditos.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_creditos.png");
+           
+            botonCreditos.Scaling = new Vector2(0.5f, 0.5f);
             sizeCreditos = botonCreditos.Texture.Size;
             botonCreditos.Position = new Vector2((screenSize.Width / 2) - sizeCreditos.Width / 4, (screenSize.Height / 2) - sizeCreditos.Height / 4 + sizeInstrucciones.Height + 50f);
-            botonCreditos.Scaling = new Vector2(0.5f, 0.5f);
+            
+            
+
+            
 
 
             
@@ -411,7 +438,30 @@ namespace AlumnoEjemplos.FriesPerSecond
                 case estado.jugar:
                     jugar(input, elapsedTime);
                     break;
+                case estado.instrucciones:
+                    verInstrucciones();
+                    break;
+                case estado.creditos:
+                    verCreditos();
+                    break;
             }
+        }
+
+        private void verCreditos()
+        {
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+            fondoMenu.render();
+            creditos.render();
+            GuiController.Instance.Drawer2D.endDrawSprite();
+        }
+
+        private void verInstrucciones()
+        {
+            camaraQ3.LockCam = false;
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+            fondoMenu.render();
+            instrucciones.render();
+            GuiController.Instance.Drawer2D.endDrawSprite();
         }
 
         private void menu(TgcD3dInput input)
@@ -421,6 +471,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             
             //Dibujo menu
             fondoMenu.render();
+            titulo.render();
             botonJugar.render();
             botonInstrucciones.render();
             botonCreditos.render();
@@ -433,6 +484,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                     player.play(true);
                     puntaje = 0;
                     estadoJuego = estado.jugar;
+                }
+                if (obtenerColisionConBoton(botonInstrucciones, sizeInstrucciones))
+                {
+                    estadoJuego = estado.instrucciones;
+                }
+                if (obtenerColisionConBoton(botonCreditos,sizeCreditos))
+                {
+                    estadoJuego = estado.creditos;
                 }
                 
             }
