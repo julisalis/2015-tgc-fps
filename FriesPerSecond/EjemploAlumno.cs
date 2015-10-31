@@ -118,6 +118,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         //Estado juego
         enum estado { jugar, menu };
         estado estadoJuego;
+        Size screenSize;
         
 
         //Menu
@@ -225,7 +226,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             explosion.loadSound(alumnoMediaFolder + "\\Sonidos\\explosion.wav");
 
             //Ubicarlo centrado en la pantalla
-            Size screenSize = GuiController.Instance.Panel3d.Size;
+            screenSize = GuiController.Instance.Panel3d.Size;
             Size textureSize = mira.Texture.Size;
             mira.Scaling = new Vector2(0.6f, 0.6f);
             mira.Position = new Vector2(FastMath.Max(screenSize.Width / 2 - (textureSize.Width * 0.6f) / 2, 0), FastMath.Max(screenSize.Height / 2 - (textureSize.Height * 0.6f) / 2, 0));
@@ -242,7 +243,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             posicionArmaDisparo = new Vector2(arma.Position.X + 5f, arma.Position.Y + 5f);
             posicionArmaOriginal = arma.Position;
 
-            fuegoArma.Position = arma.Position + new Vector2(15f,17f);
+            fuegoArma.Position = arma.Position + new Vector2(22f,28f);
 
             //Cargar malla original
             TgcSkeletalLoader loader = new TgcSkeletalLoader();
@@ -380,6 +381,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             sizeInstrucciones = botonInstrucciones.Texture.Size;
             botonInstrucciones.Position = new Vector2((screenSize.Width / 2) - sizeInstrucciones.Width / 4, (screenSize.Height / 2) - sizeInstrucciones.Height / 4 + 85f);
             botonInstrucciones.Scaling = new Vector2(0.5f, 0.5f);
+
+            botonCreditos = new TgcSprite();
+            botonCreditos.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\boton_creditos.png");
+            sizeCreditos = botonCreditos.Texture.Size;
+            botonCreditos.Position = new Vector2((screenSize.Width / 2) - sizeCreditos.Width / 4, (screenSize.Height / 2) - sizeCreditos.Height / 4 + sizeInstrucciones.Height + 50f);
+            botonCreditos.Scaling = new Vector2(0.5f, 0.5f);
+
+
             
             #endregion menu
 
@@ -414,17 +423,30 @@ namespace AlumnoEjemplos.FriesPerSecond
             fondoMenu.render();
             botonJugar.render();
             botonInstrucciones.render();
-
+            botonCreditos.render();
+            
             //Hago click para empezar a jugar
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                player.play(true);
-                puntaje = 0;
-                estadoJuego = estado.jugar;
+                if (obtenerColisionConBoton(botonJugar,sizeJugar))
+                {
+                    player.play(true);
+                    puntaje = 0;
+                    estadoJuego = estado.jugar;
+                }
+                
             }
 
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
+
+        private bool obtenerColisionConBoton(TgcSprite boton,Size tam)
+        {
+            Point mouse = Control.MousePosition;
+            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
+
+        }
+
 
         private void jugar(TgcD3dInput input, float t)
         {
