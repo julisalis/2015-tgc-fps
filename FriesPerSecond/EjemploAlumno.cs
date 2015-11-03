@@ -286,13 +286,13 @@ namespace AlumnoEjemplos.FriesPerSecond
             vida.Text = "Vida: 100";
             vida.Color = Color.Red;
             vida.Size = new Size(300, 100);
-            vida.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
+            vida.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
 
             textoPuntaje = new TgcText2d();
             textoPuntaje.Text = "Puntos: 0";
             textoPuntaje.Color = Color.Red;
             textoPuntaje.Size = new Size(300, 100);
-            textoPuntaje.changeFont(new System.Drawing.Font("Calibri", 25, FontStyle.Bold));
+            textoPuntaje.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
             textoPuntaje.Position = new Point(screenSize.Width - 300, 0);
 
 
@@ -545,6 +545,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 if (obtenerColisionConBoton(botonJugar,sizeJugar))
                 {
+                    player.closeFile();
                     player.play(true);
                     puntaje = 0;
                     numVida = 100;
@@ -684,6 +685,8 @@ namespace AlumnoEjemplos.FriesPerSecond
                             camaraQ3.LockCam = false;
                             muerte.SoundBuffer.SetCurrentPosition(0);
                             muerte.play(false);
+                            player.stop();
+                            //player.closeFile();
                             estadoJuego = estado.muerto;
                         }
                     }
@@ -737,6 +740,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 camaraQ3.LockCam = false;
                 ganador.SoundBuffer.SetCurrentPosition(0);
                 ganador.play(false);
+                player.stop();
                 estadoJuego = estado.ganador;
                 
             }
