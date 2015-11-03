@@ -64,6 +64,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcStaticSound headshot;
         TgcStaticSound golpe;
         TgcStaticSound explosion;
+        TgcStaticSound muerte;
+        TgcStaticSound ganador;
 
         protected Point mouseCenter;
 
@@ -106,6 +108,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         float numVida = 100f;
         int puntaje;
         TgcText2d textoPuntaje;
+        TgcText2d textoPerdiste;
+        TgcText2d textoGanaste;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -116,7 +120,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         Q3FpsCamera camaraQ3;
 
         //Estado juego
-        enum estado { jugar, menu, instrucciones, creditos, muerto };
+        enum estado { jugar, menu, instrucciones, creditos, muerto, ganador };
         estado estadoJuego;
         Size screenSize;
         
@@ -227,6 +231,14 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             explosion = new TgcStaticSound();
             explosion.loadSound(alumnoMediaFolder + "\\Sonidos\\explosion.wav");
+
+            muerte = new TgcStaticSound();
+            muerte.loadSound(alumnoMediaFolder + "\\Sonidos\\gameover.wav");
+
+            ganador = new TgcStaticSound();
+            ganador.loadSound(alumnoMediaFolder + "\\Sonidos\\ganador.wav");
+
+            
 
             //Ubicarlo centrado en la pantalla
             screenSize = GuiController.Instance.Panel3d.Size;
@@ -410,8 +422,22 @@ namespace AlumnoEjemplos.FriesPerSecond
             sizeCreditos = botonCreditos.Texture.Size;
             //sizeCreditos.Width = sizeCreditos.Width / 2;
             botonCreditos.Position = new Vector2((screenSize.Width / 2) - sizeCreditos.Width / 4, (screenSize.Height / 2) - sizeCreditos.Height / 4 + sizeInstrucciones.Height + 50f);
-            
-            
+
+            textoPerdiste = new TgcText2d();
+            textoPerdiste.Text = "Game over";
+            textoPerdiste.Align = TgcText2d.TextAlign.CENTER;
+            textoPerdiste.Color = Color.Black;
+            textoPerdiste.Size = new Size(600, 100);
+            textoPerdiste.Position = new Point((screenSize.Width / 2) - textoPerdiste.Size.Width / 2, (screenSize.Height / 2) - textoPerdiste.Size.Height / 2);
+            textoPerdiste.changeFont(new System.Drawing.Font("BankGothic Md BT", 50, FontStyle.Bold));
+
+            textoGanaste = new TgcText2d();
+            textoGanaste.Text = "Ganaste!";
+            textoGanaste.Align = TgcText2d.TextAlign.CENTER;
+            textoGanaste.Color = Color.Black;
+            textoGanaste.Size = new Size(600, 100);
+            textoGanaste.Position = new Point((screenSize.Width / 2) - textoGanaste.Size.Width / 2, (screenSize.Height / 2) - textoGanaste.Size.Height / 2);
+            textoGanaste.changeFont(new System.Drawing.Font("BankGothic Md BT", 50, FontStyle.Bold));
             
             #endregion menu
 
@@ -443,18 +469,45 @@ namespace AlumnoEjemplos.FriesPerSecond
                 case estado.muerto:
                     cartelMuerte(input);
                     break;
+                case estado.ganador:
+                    cartelGanador(input);
+                    break;
             }
+        }
+
+        private void cartelGanador(TgcD3dInput input)
+        {
+            GuiController.Instance.Drawer2D.beginDrawSprite();
+            fondoMenu.render();
+
+            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            {
+                if (obtenerColisionConTexto(textoPerdiste, textoPerdiste.Size))
+                {
+                    estadoJuego = estado.menu;
+                }
+
+            }
+            GuiController.Instance.Drawer2D.endDrawSprite();
+            textoGanaste.render();
+            player.stop();
         }
 
         private void cartelMuerte(TgcD3dInput input)
         {
             GuiController.Instance.Drawer2D.beginDrawSprite();
             fondoMenu.render();
+           
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                estadoJuego = estado.menu;
+                if (obtenerColisionConTexto(textoPerdiste,textoPerdiste.Size))
+                {
+                    estadoJuego = estado.menu;
+                }
+                
             }
             GuiController.Instance.Drawer2D.endDrawSprite();
+            textoPerdiste.render();
             player.stop();
         }
 
@@ -494,6 +547,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     player.play(true);
                     puntaje = 0;
+                    numVida = 100;
                     estadoJuego = estado.jugar;
                 }
                 if (obtenerColisionConBoton(botonInstrucciones, sizeInstrucciones))
@@ -510,10 +564,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
 
+        private bool obtenerColisionConTexto(TgcText2d boton, Size tam)
+        {
+            Point mouse = Control.MousePosition;
+            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
+
+        }
+
         private bool obtenerColisionConBoton(TgcSprite boton,Size tam)
         {
             Point mouse = Control.MousePosition;
-
             return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
 
         }
@@ -593,6 +653,14 @@ namespace AlumnoEjemplos.FriesPerSecond
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
                     enemigo.ultimaPosicion = enemigo.meshEnemigo.Position;
+                    foreach (TgcMesh item in barriles)
+                    {
+                        if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, item.BoundingBox))
+                        {
+                            enemigo.meshEnemigo.rotateY(FastMath.PI_HALF);
+                            enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
+                        }
+                    }
                     foreach (TgcBoundingBox bb in obtenerListaZona(enemigo.meshEnemigo.Position))
                     {
                         if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, bb))
@@ -610,8 +678,12 @@ namespace AlumnoEjemplos.FriesPerSecond
                         enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos*5);
                         camaraQ3.setPosition(ultimaPosCamara);
                         numVida -= 20f * t;
+                        //Muerte del personaje
                         if (numVida<=0)
                         {
+                            camaraQ3.LockCam = false;
+                            muerte.SoundBuffer.SetCurrentPosition(0);
+                            muerte.play(false);
                             estadoJuego = estado.muerto;
                         }
                     }
@@ -659,6 +731,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             huboDisparo = false;
             disparoBarril = false;
 
+            if (instanciasEnemigos.TrueForAll(estaMuerto))
+            {
+                player.stop();
+                camaraQ3.LockCam = false;
+                ganador.SoundBuffer.SetCurrentPosition(0);
+                ganador.play(false);
+                estadoJuego = estado.ganador;
+                
+            }
+
             //enemigoEffect.SetValue("time", time);
 
             //Renderizar instancias
@@ -669,6 +751,11 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //DIBUJOS 2D
             renderSprites(input);
+        }
+
+        private static bool estaMuerto(Enemigo e)
+        {
+            return !e.estaVivo;
         }
 
         private void matarEnemigo(Enemigo enemigo)
@@ -712,7 +799,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 fuegoArma.updateAndRender();
                 cantF--;
             }
-            vida.Text = "Vida: " + FastMath.Ceiling(numVida).ToString();
+            vida.Text = "Vida: " + FastMath.Ceiling(numVida).ToString() + "/100";
             vida.render();
             textoPuntaje.Text = "Puntos: " + puntaje;
             textoPuntaje.render();
