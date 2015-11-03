@@ -110,6 +110,9 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcText2d textoPuntaje;
         TgcText2d textoPerdiste;
         TgcText2d textoGanaste;
+        bool primeraVez;
+        string mediaPath;
+        TgcSkeletalLoader loader;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -179,7 +182,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             d3dDevice = GuiController.Instance.D3dDevice;
 
             rand = new Random();
-
+            
             //Carpeta de archivos Media del alumno
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
@@ -261,9 +264,9 @@ namespace AlumnoEjemplos.FriesPerSecond
             fuegoArma.Position = arma.Position + new Vector2(22f,28f);
 
             //Cargar malla original
-            TgcSkeletalLoader loader = new TgcSkeletalLoader();
+            loader = new TgcSkeletalLoader();
             string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
-            string mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
+            mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
             originalEnemigo = loader.loadMeshFromFile(pathMesh, mediaPath);
             originalEnemigo.Scale = new Vector3(3.4f, 3.4f, 3.4f);
 
@@ -438,7 +441,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoGanaste.Size = new Size(600, 100);
             textoGanaste.Position = new Point((screenSize.Width / 2) - textoGanaste.Size.Width / 2, (screenSize.Height / 2) - textoGanaste.Size.Height / 2);
             textoGanaste.changeFont(new System.Drawing.Font("BankGothic Md BT", 50, FontStyle.Bold));
-            
+
+            primeraVez = true;
             #endregion menu
 
 
@@ -458,6 +462,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     menu(input);
                     break;
                 case estado.jugar:
+                    
                     jugar(input, elapsedTime);
                     break;
                 case estado.instrucciones:
@@ -545,6 +550,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 if (obtenerColisionConBoton(botonJugar,sizeJugar))
                 {
+                    if (!primeraVez)
+                    {
+                        instanciasEnemigos.Clear();
+                        barriles.Clear();
+                        inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+                        //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
+                        inicializarBarriles();
+
+                    }
+                    primeraVez = false;
                     player.closeFile();
                     player.play(true);
                     puntaje = 0;
