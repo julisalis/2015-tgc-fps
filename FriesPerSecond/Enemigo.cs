@@ -23,5 +23,6 @@ namespace AlumnoEjemplos.FriesPerSecond
             this.estaVivo = true;
             this.ultimaPosicion = pos;
         }
+       
     }
 }

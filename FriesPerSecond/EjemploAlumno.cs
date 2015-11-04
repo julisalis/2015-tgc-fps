@@ -107,12 +107,16 @@ namespace AlumnoEjemplos.FriesPerSecond
         float velocidadBala = 1000f;
         float numVida = 100f;
         int puntaje;
+        int puntajeRecord;
         TgcText2d textoPuntaje;
         TgcText2d textoPerdiste;
         TgcText2d textoGanaste;
+        TgcText2d textoPuntajeFinal;
+        TgcText2d textoPuntajeRecord;
         bool primeraVez;
         string mediaPath;
         TgcSkeletalLoader loader;
+        string alumnoMediaFolder;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -184,7 +188,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             rand = new Random();
             
             //Carpeta de archivos Media del alumno
-            string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+            alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
 
             effect = TgcShaders.loadEffect(alumnoMediaFolder + "Shaders\\viento.fx");
 
@@ -297,6 +301,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoPuntaje.Size = new Size(300, 100);
             textoPuntaje.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
             textoPuntaje.Position = new Point(screenSize.Width - 300, 0);
+
+            
 
 
             //////VARIABLES DE FRUSTUM
@@ -442,6 +448,18 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoGanaste.Position = new Point((screenSize.Width / 2) - textoGanaste.Size.Width / 2, (screenSize.Height / 2) - textoGanaste.Size.Height / 2);
             textoGanaste.changeFont(new System.Drawing.Font("BankGothic Md BT", 50, FontStyle.Bold));
 
+            textoPuntajeFinal = new TgcText2d();
+            textoPuntajeFinal.Color = Color.Black;
+            textoPuntajeFinal.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
+            textoPuntajeFinal.Position = new Point(textoGanaste.Position.X - 240, textoGanaste.Position.Y + 75);
+
+            textoPuntajeRecord = new TgcText2d();
+            textoPuntajeRecord.Color = Color.Black;
+            textoPuntajeRecord.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
+            textoPuntajeRecord.Position = new Point((int)titulo.Position.X-290, (int)titulo.Position.Y+130);
+            puntajeRecord = Int32.Parse(System.IO.File.ReadAllText(alumnoMediaFolder + "\\record.txt"));
+            textoPuntajeRecord.Text = "Tu puntaje record es: " + puntajeRecord.ToString();
+
             primeraVez = true;
             #endregion menu
 
@@ -485,11 +503,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Drawer2D.beginDrawSprite();
             fondoMenu.render();
 
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if ( GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.M))
             {
+                puntajeRecord = Int32.Parse(System.IO.File.ReadAllText(alumnoMediaFolder + "\\record.txt"));
+                textoPuntajeRecord.Text = "Tu puntaje record es: " + puntajeRecord.ToString();
                 estadoJuego = estado.menu;
             }
             GuiController.Instance.Drawer2D.endDrawSprite();
+            textoPuntajeFinal.render();
             textoGanaste.render();
             player.stop();
         }
@@ -499,7 +520,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Drawer2D.beginDrawSprite();
             fondoMenu.render();
            
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if ( GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.M))
             {
                 estadoJuego = estado.menu;
             }
@@ -514,7 +535,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             fondoMenu.render();
             creditos.render();
             GuiController.Instance.Drawer2D.endDrawSprite();
-            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back))
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back) || GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.M))
             {
                 estadoJuego = estado.menu;
             }
@@ -527,7 +548,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             fondoMenu.render();
             instrucciones.render();
             GuiController.Instance.Drawer2D.endDrawSprite();
-            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back))
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back) || GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.M))
             {
                 estadoJuego = estado.menu;
             }
@@ -545,11 +566,13 @@ namespace AlumnoEjemplos.FriesPerSecond
             botonInstrucciones.render();
             botonCreditos.render();
             
+            
             //Hago click para empezar a jugar
             if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.J))
             {
                 if (!primeraVez)
                 {
+                    velocidadEnemigos = -5f;
                     instanciasEnemigos.Clear();
                     barriles.Clear();
                     inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
@@ -572,6 +595,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 estadoJuego = estado.creditos;
             }
             GuiController.Instance.Drawer2D.endDrawSprite();
+            textoPuntajeRecord.render();
         }
 
         private bool obtenerColisionConTexto(TgcText2d boton, Size tam)
@@ -758,6 +782,12 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             if (instanciasEnemigos.TrueForAll(estaMuerto))
             {
+                if (puntaje > Int32.Parse(System.IO.File.ReadAllText(alumnoMediaFolder + "\\record.txt")))
+                {
+                    System.IO.File.WriteAllText(alumnoMediaFolder + "\\record.txt", puntaje.ToString());
+                    //textoPuntajeRecord.Text = "Tu puntaje record es: " + puntaje.ToString();
+                }
+                textoPuntajeFinal.Text = "Tu puntaje fue: " + puntaje.ToString();
                 player.stop();
                 camaraQ3.LockCam = false;
                 ganador.SoundBuffer.SetCurrentPosition(0);
