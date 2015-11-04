@@ -311,17 +311,17 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.D3dDevice.Transform.Projection = Matrix.PerspectiveFovLH(anguloFov, aspectRatio, 1f, 50000f);
 
             ///////////////USER VARS//////////////////
-
+            /*
             //Crear una UserVar
             GuiController.Instance.UserVars.addVar("variablePrueba");
 
             //Cargar valor en UserVar
             GuiController.Instance.UserVars.setValue("variablePrueba", 5451);
-
-
+            */
 
             ///////////////MODIFIERS//////////////////
 
+           /*
             //Crear un modifier para un valor FLOAT
             GuiController.Instance.Modifiers.addFloat("valorFloat", -50f, 200f, 0f);
 
@@ -331,7 +331,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Crear un modifier para modificar un vértice
             GuiController.Instance.Modifiers.addVertex3f("valorVertice", new Vector3(-100, -100, -100), new Vector3(50, 50, 50), new Vector3(0, 0, 0));
-
+            */
 
 
             ///////////////CONFIGURAR CAMARA ROTACIONAL//////////////////
@@ -395,8 +395,8 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             instrucciones = new TgcSprite();
             instrucciones.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\instrucciones.png");
-            instrucciones.Scaling = new Vector2(0.5f, 0.5f);
-            instrucciones.Position = new Vector2((screenSize.Width / 2) - instrucciones.Texture.Width / 4, (instrucciones.Texture.Height / 2) - instrucciones.Texture.Height / 2);
+            instrucciones.Scaling = new Vector2(0.4f, 0.5f);
+            instrucciones.Position = new Vector2((screenSize.Width / 2) - (instrucciones.Texture.Width*0.4f) / 2, (instrucciones.Texture.Height / 2) - instrucciones.Texture.Height / 2);
 
             creditos = new TgcSprite();
             creditos.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\Menu\\creditos.png");
@@ -487,11 +487,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                if (obtenerColisionConTexto(textoPerdiste, textoPerdiste.Size))
-                {
-                    estadoJuego = estado.menu;
-                }
-
+                estadoJuego = estado.menu;
             }
             GuiController.Instance.Drawer2D.endDrawSprite();
             textoGanaste.render();
@@ -505,11 +501,7 @@ namespace AlumnoEjemplos.FriesPerSecond
            
             if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
             {
-                if (obtenerColisionConTexto(textoPerdiste,textoPerdiste.Size))
-                {
-                    estadoJuego = estado.menu;
-                }
-                
+                estadoJuego = estado.menu;
             }
             GuiController.Instance.Drawer2D.endDrawSprite();
             textoPerdiste.render();
@@ -522,20 +514,28 @@ namespace AlumnoEjemplos.FriesPerSecond
             fondoMenu.render();
             creditos.render();
             GuiController.Instance.Drawer2D.endDrawSprite();
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back))
+            {
+                estadoJuego = estado.menu;
+            }
         }
 
         private void verInstrucciones()
         {
-            camaraQ3.LockCam = false;
+            camaraQ3.LockCam = true;
             GuiController.Instance.Drawer2D.beginDrawSprite();
             fondoMenu.render();
             instrucciones.render();
             GuiController.Instance.Drawer2D.endDrawSprite();
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.Back))
+            {
+                estadoJuego = estado.menu;
+            }
         }
 
         private void menu(TgcD3dInput input)
         {
-            camaraQ3.LockCam = false;
+            camaraQ3.LockCam = true;
             GuiController.Instance.Drawer2D.beginDrawSprite();
             
             //Dibujo menu
@@ -546,51 +546,45 @@ namespace AlumnoEjemplos.FriesPerSecond
             botonCreditos.render();
             
             //Hago click para empezar a jugar
-            if (input.buttonPressed(TgcD3dInput.MouseButtons.BUTTON_LEFT))
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.J))
             {
-                if (obtenerColisionConBoton(botonJugar,sizeJugar))
+                if (!primeraVez)
                 {
-                    if (!primeraVez)
-                    {
-                        instanciasEnemigos.Clear();
-                        barriles.Clear();
-                        inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
-                        //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
-                        inicializarBarriles();
-
-                    }
-                    primeraVez = false;
-                    player.closeFile();
-                    player.play(true);
-                    puntaje = 0;
-                    numVida = 100;
-                    estadoJuego = estado.jugar;
+                    instanciasEnemigos.Clear();
+                    barriles.Clear();
+                    inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+                    //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
+                    inicializarBarriles();
                 }
-                if (obtenerColisionConBoton(botonInstrucciones, sizeInstrucciones))
-                {
-                    estadoJuego = estado.instrucciones;
-                }
-                if (obtenerColisionConBoton(botonCreditos,sizeCreditos))
-                {
-                    estadoJuego = estado.creditos;
-                }
-                
+                primeraVez = false;
+                player.closeFile();
+                player.play(true);
+                puntaje = 0;
+                numVida = 100;
+                estadoJuego = estado.jugar;
             }
-
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.I))
+            {
+                estadoJuego = estado.instrucciones;
+            }
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.C))
+            {
+                estadoJuego = estado.creditos;
+            }
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
 
         private bool obtenerColisionConTexto(TgcText2d boton, Size tam)
         {
             Point mouse = Control.MousePosition;
-            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
+            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width*0.5f) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height*0.5f);
 
         }
 
         private bool obtenerColisionConBoton(TgcSprite boton,Size tam)
         {
             Point mouse = Control.MousePosition;
-            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + tam.Width) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + tam.Height);
+            return mouse.X > boton.Position.X && mouse.X < (boton.Position.X + (tam.Width*0.5f)) && mouse.Y > boton.Position.Y && mouse.Y < (boton.Position.Y + (tam.Height*0.5f));
 
         }
 
@@ -616,6 +610,19 @@ namespace AlumnoEjemplos.FriesPerSecond
                     camaraQ3.setPosition(ultimaPosCamara);
                     //camaraQ3.setCamera(ultimaPosCamara, camaraQ3.getLookAt() + ultimaPosCamara);
                 }
+            }
+
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.C))
+            {
+                velocidadEnemigos = velocidadEnemigos + 0.4f;
+                if (velocidadEnemigos >= 0f)
+                {
+                    velocidadEnemigos = 0f;
+                }
+            }
+            if (GuiController.Instance.D3dInput.keyDown(Microsoft.DirectX.DirectInput.Key.V))
+            {
+                velocidadEnemigos = velocidadEnemigos - 0.4f;
             }
 
             ajustarZoom();
