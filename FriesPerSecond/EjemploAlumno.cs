@@ -575,8 +575,8 @@ namespace AlumnoEjemplos.FriesPerSecond
                     velocidadEnemigos = -5f;
                     instanciasEnemigos.Clear();
                     barriles.Clear();
-                    inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
                     //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
+                    inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
                     inicializarBarriles();
                 }
                 primeraVez = false;
