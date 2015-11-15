@@ -1016,7 +1016,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             pastoOriginal.Technique = "VientoPasto";
 
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
-            int rows = 30;
+            int rows = 50;
             int cols = 30;
             pasto = new List<TgcMesh>();
             //bool moverFila=false;
