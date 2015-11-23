@@ -147,6 +147,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcSprite botonCreditos;
         TgcSprite botonSalir;
         TgcSprite botonVolver;
+        TgcSprite barraVida;
         Size sizeJugar;
         Size sizeInstrucciones;
         Size sizeCreditos;
@@ -297,14 +298,20 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             //Crear texto vida, básico
             vida = new TgcText2d();
-            vida.Text = "Vida: 100";
-            vida.Color = Color.Red;
+            vida.Text = "100";
+            vida.Color = Color.White;
             vida.Size = new Size(300, 100);
             vida.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
+            vida.Position = new Point(-60, 0);
+
+            barraVida = new TgcSprite();
+            barraVida.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\barra_vida.png");
+            barraVida.Position = new Vector2((float)vida.Position.X + 175f, (float)vida.Position.Y);
+            barraVida.Scaling = new Vector2(0.3f, 0.3f);
 
             textoPuntaje = new TgcText2d();
             textoPuntaje.Text = "Puntos: 0";
-            textoPuntaje.Color = Color.Red;
+            textoPuntaje.Color = Color.White;
             textoPuntaje.Size = new Size(300, 100);
             textoPuntaje.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
             textoPuntaje.Position = new Point(screenSize.Width - 300, 0);
@@ -737,6 +744,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                         enemigo.meshEnemigo.moveOrientedY(-velocidadEnemigos*5);
                         camaraQ3.setPosition(ultimaPosCamara);
                         numVida -= 20f * t;
+                        barraVida.Scaling = new Vector2(0.3f*0.01f * numVida, 0.3f);
                         //Muerte del personaje
                         if (numVida<=0)
                         {
@@ -845,6 +853,10 @@ namespace AlumnoEjemplos.FriesPerSecond
             GuiController.Instance.Drawer2D.beginDrawSprite();
 
             //Dibujar sprite (si hubiese mas, deberian ir todos aquí)
+            barraVida.render();
+            vida.Text = FastMath.Ceiling(numVida).ToString();
+            vida.render();
+            
             if (miraActivada)
             {
                 mira_zoom.render();
@@ -868,8 +880,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 fuegoArma.updateAndRender();
                 cantF--;
             }
-            vida.Text = "Vida: " + FastMath.Ceiling(numVida).ToString() + "/100";
-            vida.render();
+            
             textoPuntaje.Text = "Puntos: " + puntaje;
             textoPuntaje.render();
             //Finalizar el dibujado de Sprites
