@@ -31,14 +31,18 @@ namespace AlumnoEjemplos.FriesPerSecond
 
         //Meshes
         TgcBox piso;
+        TgcSimpleTerrain terreno;
         TgcSkyBox skyBox;
         TgcBoundingBox bbSkyBox;
         TgcSkeletalMesh originalEnemigo;
         List<Enemigo> instanciasEnemigos;
         TgcMesh palmeraOriginal;
+        TgcMesh otroArbolOriginal;
         TgcMesh pastoOriginal;
+        TgcMesh piedraOriginal;
         List<TgcMesh> pasto;
         List<TgcMesh> arboles;
+        List<TgcMesh> piedras;
         List<TgcBoundingBox> BBZona1;
         List<TgcBoundingBox> BBZona2;
         List<TgcBoundingBox> BBZona3;
@@ -49,6 +53,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcBox personaje;
         TgcMesh barril;
         TgcMesh barrilDisparado;
+        TgcSphere esferaExplosion;
         List<TgcMesh> barriles;
 
 
@@ -279,10 +284,12 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             inicializarArboles();
             inicializarPasto();
+            inicializarPiedras();
 
             totales = new List<TgcMesh>();
             totales.AddRange(arboles);
             totales.AddRange(pasto);
+            totales.AddRange(piedras);
 
             qt = new Quadtree();
             qt.create(totales, bbSkyBox);
@@ -375,7 +382,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //ENEMIGOS          
             instanciasEnemigos = new List<Enemigo>();
             //El ultimo parametro es el radio
-            inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+            inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
 
             inicializarBarriles();
 
@@ -451,12 +458,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoPuntajeFinal = new TgcText2d();
             textoPuntajeFinal.Color = Color.Black;
             textoPuntajeFinal.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
-            textoPuntajeFinal.Position = new Point(textoGanaste.Position.X - 240, textoGanaste.Position.Y + 75);
+            textoPuntajeFinal.Size = new Size(600, 100);
+            textoPuntajeFinal.Position = new Point((screenSize.Width / 2) - textoPuntajeFinal.Size.Width / 2, (screenSize.Height / 2) - textoPuntajeFinal.Size.Height/2 + textoGanaste.Size.Height);
 
             textoPuntajeRecord = new TgcText2d();
             textoPuntajeRecord.Color = Color.Black;
-            textoPuntajeRecord.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
-            textoPuntajeRecord.Position = new Point((int)titulo.Position.X-290, (int)titulo.Position.Y+130);
+            textoPuntajeRecord.Size = new Size(400, 60);
+            textoPuntajeRecord.changeFont(new System.Drawing.Font("BankGothic Md BT", 15, FontStyle.Bold));
+            textoPuntajeRecord.Position = new Point((screenSize.Width - textoPuntajeRecord.Size.Width),(screenSize.Height-textoPuntajeRecord.Size.Height/2));
             puntajeRecord = Int32.Parse(System.IO.File.ReadAllText(alumnoMediaFolder + "\\record.txt"));
             textoPuntajeRecord.Text = "Tu puntaje record es: " + puntajeRecord.ToString();
 
@@ -576,7 +585,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     instanciasEnemigos.Clear();
                     barriles.Clear();
                     //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
-                    inicializarEnemigos(4, 3, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+                    inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
                     inicializarBarriles();
                 }
                 primeraVez = false;
@@ -653,9 +662,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             ajustarVelocidad();
 
             renderizarBarriles();
+            renderizarPiedras();
 
             //Renderizar suelo y skybox
             piso.render();
+            //terreno.render();
             skyBox.render();
 
             //Emitir un disparo
@@ -680,6 +691,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                         barrilDisparado = b;
                         explosion.SoundBuffer.SetCurrentPosition(0);
                         explosion.play(false);
+                        huboDisparo = false;
                         break;
                     }
                 }
@@ -737,7 +749,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                         }
                     }
 
-                    if (huboDisparo)
+                    if (huboDisparo || disparoBarril)
                     {
                         if (disparoBarril)
                         {
@@ -765,6 +777,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                                     puntaje += 20; //el headshot me da 20 puntos mas que un disparo normal
                                 }
                                 matarEnemigo(enemigo);
+                                huboDisparo = false;
                             }
                         }
                         
@@ -927,7 +940,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 b.render();
             }
-        }   
+        }
+
+        private void renderizarPiedras()
+        {
+            foreach (TgcMesh p in piedras)
+            {
+                p.render();
+            }
+        }  
 
         #region inicializaciones
 
@@ -955,6 +976,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             piso = TgcBox.fromSize(new Vector3(0, 0, 0), new Vector3(20000, 0, 20000), pisoTexture);
             piso.UVTiling = new Vector2(50, 50);
             piso.updateValues();
+
+            //crear terreno
+            terreno = new TgcSimpleTerrain();
+            terreno.loadHeightmap(GuiController.Instance.ExamplesMediaDir + "Heighmaps\\Heightmap1.jpg", 350f, 1.6f,new Vector3(0f,0f,0f));
+            terreno.loadTexture(GuiController.Instance.AlumnoEjemplosMediaDir + "\\pasto2.jpg");
         }
 
         private void inicializarArboles()
@@ -970,6 +996,15 @@ namespace AlumnoEjemplos.FriesPerSecond
             palmeraOriginal.Effect = effect;
             palmeraOriginal.Technique = "RenderScene";
 
+            //Cargar modelo de otro arbol
+            TgcSceneLoader loader2 = new TgcSceneLoader();
+            scene = loader2.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\ArbolSelvatico2\\ArbolSelvatico2-TgcScene.xml");
+            otroArbolOriginal = scene.Meshes[0];
+
+            //Cargar Shader personalizado
+            otroArbolOriginal.Effect = effect;
+            otroArbolOriginal.Technique = "RenderScene";
+
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 30;
             int cols = 10;
@@ -980,10 +1015,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             BBZona4 = new List<TgcBoundingBox>();
             arboles = new List<TgcMesh>();
             //bool moverFila=false;
-
-            for (int i = 0; i < rows; i++)
+            int i = 0;
+            int j = 0;
+            for (i = 0; i < rows; i++)
             {
-                for (int j = 0; j < cols; j++)
+                for (j = 0; j < cols; j++)
                 {
                     //Crear instancia de modelo
                     TgcMesh instance = palmeraOriginal.createMeshInstance(palmeraOriginal.Name + i + "_" + j);
@@ -994,9 +1030,64 @@ namespace AlumnoEjemplos.FriesPerSecond
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
                     instance.Scale = new Vector3(1.3f, 1.3f, 1.3f);
+                    //instance.move(0f, terreno.HeightmapData[(int)(instance.Position.X/350f/64f),(int)(instance.Position.Z/350f/64f)] * 1.6f, 0f);
+                    //instance.Position.Y = (float)terreno.HeightmapData.GetValue((int)(instance.Position.X / 350f), (int)(instance.Position.Z / 350f));
+                    
 
                     arboles.Add(instance);
                     obtenerListaZona(instance.Position).Add(clonarBoundingBoxArbol(instance.BoundingBox));
+                }
+            }
+            i = 0; j = 0;
+            for (i = 0; i < rows; i++)
+            {
+                for (j = 0; j < cols; j++)
+                {
+                    //Crear instancia de modelo
+                    TgcMesh instance2 = otroArbolOriginal.createMeshInstance(otroArbolOriginal.Name + i + "_" + j);
+                    instance2.Effect = effect;
+                    instance2.Technique = "RenderScene";
+                    instance2.AlphaBlendEnable = true;
+
+                    //Desplazarlo
+                    instance2.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance2.Scale = new Vector3(10f, 10f, 10f);
+
+                    arboles.Add(instance2);
+                    obtenerListaZona(instance2.Position).Add(clonarBoundingBoxArbol(instance2.BoundingBox));
+                }
+            }
+        }
+
+        private void inicializarPiedras()
+        {
+            string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
+
+            //Cargar modelo de palmera original
+            TgcSceneLoader loader1 = new TgcSceneLoader();
+            scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Vegetacion\\Roca\\Roca-TgcScene.xml");
+            piedraOriginal = scene.Meshes[0];
+            piedraOriginal.AlphaBlendEnable = true;
+
+            //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
+            int rows = 30;
+            int cols = 20;
+            piedras = new List<TgcMesh>();
+            //bool moverFila=false;
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    //Crear instancia de modelo
+                    TgcMesh instance = piedraOriginal.createMeshInstance(pastoOriginal.Name + i + "_" + j);
+                    instance.AlphaBlendEnable = true;
+
+                    //Desplazarlo
+                    instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance.Scale = new Vector3(2f, 2f, 2f);
+
+                    piedras.Add(instance);
                 }
             }
         }
