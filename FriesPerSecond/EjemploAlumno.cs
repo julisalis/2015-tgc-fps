@@ -588,6 +588,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 if (!primeraVez)
                 {
+                    barraVida.Scaling = new Vector2(0.3f, 0.3f);
                     velocidadEnemigos = -5f;
                     instanciasEnemigos.Clear();
                     barriles.Clear();
