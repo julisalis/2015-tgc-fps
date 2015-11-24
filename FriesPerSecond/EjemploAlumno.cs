@@ -52,9 +52,9 @@ namespace AlumnoEjemplos.FriesPerSecond
         Vector2 posicionArmaOriginal;
         TgcBox personaje;
         TgcMesh barril;
-        TgcMesh barrilDisparado;
+        Barril barrilDisparado;
         TgcMesh esferaExplosion;
-        List<TgcMesh> barriles;
+        List<Barril> barriles;
         List<TgcMesh> explosiones;
 
 
@@ -681,7 +681,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             ajustarZoom();
             ajustarVelocidad();
 
-            renderizarBarriles();
+            renderizarBarriles(t);
             renderizarPiedras();
 
             //Renderizar suelo y skybox
@@ -702,14 +702,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Reviso si colisiono contra un barril si hubo disparo
             if (huboDisparo)
             {
-                foreach (TgcMesh b in barriles)
+                foreach (Barril b in barriles)
                 {
-                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.BoundingBox, out col))
+                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.mesh.BoundingBox, out col))
                     {
-                        boundingBarril = new TgcBoundingSphere(b.BoundingBox.calculateBoxCenter(), 400f);
+                        boundingBarril = new TgcBoundingSphere(b.mesh.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
                         barrilDisparado = b;
-                        numExplosion = barriles.IndexOf(b);
+                        b.fueDisparado = true;
                         explosion.SoundBuffer.SetCurrentPosition(0);
                         explosion.play(false);
                         huboDisparo = false;
@@ -718,13 +718,13 @@ namespace AlumnoEjemplos.FriesPerSecond
                 }
                 if (barrilDisparado!=null)
                 {
-                    barriles.Remove(barrilDisparado);
+                    //barriles.Remove(barrilDisparado);
                     barrilDisparado = null;
                 }
             }
             
             //Se dibuja siempre al principio, habria que hacer instancias y dibujarlas cada vez que se disparo a un barril en esa posicion
-            explosiones[numExplosion].render();
+            
 
             //Renderizar original e instancias (no dibujo original, solo instancias)   
             foreach (Enemigo enemigo in instanciasEnemigos)
@@ -735,9 +735,9 @@ namespace AlumnoEjemplos.FriesPerSecond
                     rotarMesh(enemigo.meshEnemigo);
                     enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
                     enemigo.ultimaPosicion = enemigo.meshEnemigo.Position;
-                    foreach (TgcMesh item in barriles)
+                    foreach (Barril item in barriles)
                     {
-                        if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, item.BoundingBox))
+                        if (TgcCollisionUtils.testAABBAABB(enemigo.meshEnemigo.BoundingBox, item.mesh.BoundingBox))
                         {
                             enemigo.meshEnemigo.rotateY(FastMath.PI_HALF);
                             enemigo.meshEnemigo.moveOrientedY(velocidadEnemigos);
@@ -961,11 +961,21 @@ namespace AlumnoEjemplos.FriesPerSecond
             }
         }
 
-        private void renderizarBarriles()
+        private void renderizarBarriles(float t)
         {
-            foreach (TgcMesh b in barriles)
+            foreach (Barril b in barriles)
             {
-                b.render();
+                if(!b.fueDisparado)
+                {
+                    b.mesh.render();
+                }else
+                {
+                    b.tiempo += t;
+                    explosiones[barriles.IndexOf(b)].Effect.SetValue("time", b.tiempo);
+                    explosiones[barriles.IndexOf(b)].render();
+                }
+
+                
             }
         }
 
@@ -1171,7 +1181,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
             int rows = 1;
             int cols = 5;
-            barriles = new List<TgcMesh>();
+            barriles = new List<Barril>();
             explosiones = new List<TgcMesh>();
             //bool moverFila=false;
 
@@ -1183,6 +1193,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     TgcMesh instance = barril.createMeshInstance(barril.Name + i + "_" + j);
                     instance.AlphaBlendEnable = true;
                     TgcMesh instanceExplosion = esferaExplosion.createMeshInstance(i + "_" + j);
+                    instanceExplosion.AlphaBlendEnable = true;
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
@@ -1192,7 +1203,12 @@ namespace AlumnoEjemplos.FriesPerSecond
                     instanceExplosion.move(new Vector3(0f, 100f, 0f));
                     instanceExplosion.Scale = new Vector3(6f, 6f, 6f);
 
-                    barriles.Add(instance);
+                    Effect fx = TgcShaders.loadEffect(GuiController.Instance.AlumnoEjemplosMediaDir + "Shaders\\explosion.fx");
+                    instanceExplosion.Effect = fx;
+                    instanceExplosion.Technique = "explosion";
+
+                    Barril instanciaBarril = new Barril(instance);
+                    barriles.Add(instanciaBarril);
                     explosiones.Add(instanceExplosion);
                 }
             }
