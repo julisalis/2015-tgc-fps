@@ -58,6 +58,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         List<TgcMesh> explosiones;
 
 
+
         Quadtree qt;
         List<TgcMesh> totales;
 
@@ -285,6 +286,8 @@ namespace AlumnoEjemplos.FriesPerSecond
             //Agregar animación a original
             loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
 
+            
+
             inicializarArboles();
             inicializarPasto();
             inicializarPiedras();
@@ -488,8 +491,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         public void crearEsferaExplosion()
         {
             TgcSceneLoader loaderExplosion = new TgcSceneLoader();
-            esferaExplosion = loaderExplosion.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "ModelosTgc\\Sphere\\Sphere-TgcScene.xml").Meshes[0];
-            esferaExplosion.changeDiffuseMaps(new TgcTexture[] { TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesDir + "Transformations\\SistemaSolar\\SunTexture.jpg") });
+            esferaExplosion = loaderExplosion.loadSceneFromFile(GuiController.Instance.AlumnoEjemplosMediaDir + "\\Sphere\\Sphere-TgcScene.xml").Meshes[0];
+            esferaExplosion.changeDiffuseMaps(new TgcTexture[] { TgcTexture.createTexture(d3dDevice, GuiController.Instance.AlumnoEjemplosMediaDir + "\\explosion.jpg") });
             
         }
 
@@ -602,6 +605,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     barraVida.Scaling = new Vector2(0.3f, 0.3f);
                     velocidadEnemigos = -5f;
                     instanciasEnemigos.Clear();
+                    instanciasEnemigos = new List<Enemigo>();
                     barriles.Clear();
                     //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
                     inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
@@ -1273,7 +1277,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 }
             }
 
-            originalEnemigo.playAnimation("Walk");
+            //originalEnemigo.playAnimation("Walk");
             foreach (Enemigo enemigo in lista)
             {
                 enemigo.meshEnemigo.playAnimation("Walk");
