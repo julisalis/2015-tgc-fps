@@ -55,6 +55,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh barrilDisparado;
         TgcMesh esferaExplosion;
         List<TgcMesh> barriles;
+        List<TgcMesh> explosiones;
 
 
         Quadtree qt;
@@ -122,6 +123,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         string mediaPath;
         TgcSkeletalLoader loader;
         string alumnoMediaFolder;
+        int numExplosion;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -391,6 +393,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //El ultimo parametro es el radio
             inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
 
+            crearEsferaExplosion();
             inicializarBarriles();
 
             //Para disparo
@@ -479,7 +482,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             primeraVez = true;
             #endregion menu
 
-            crearEsferaExplosion();
+            
 
         }
 
@@ -488,7 +491,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             TgcSceneLoader loaderExplosion = new TgcSceneLoader();
             esferaExplosion = loaderExplosion.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "ModelosTgc\\Sphere\\Sphere-TgcScene.xml").Meshes[0];
             esferaExplosion.changeDiffuseMaps(new TgcTexture[] { TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesDir + "Transformations\\SistemaSolar\\SunTexture.jpg") });
-            esferaExplosion.Scale = new Vector3(7f, 7f, 7f);
+            
         }
 
         public override void render(float elapsedTime)
@@ -703,11 +706,10 @@ namespace AlumnoEjemplos.FriesPerSecond
                 {
                     if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.BoundingBox, out col))
                     {
-                        esferaExplosion.Position = b.Position;
-                        esferaExplosion.move(new Vector3(0f, 200f, 0f));
                         boundingBarril = new TgcBoundingSphere(b.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
                         barrilDisparado = b;
+                        numExplosion = barriles.IndexOf(b);
                         explosion.SoundBuffer.SetCurrentPosition(0);
                         explosion.play(false);
                         huboDisparo = false;
@@ -722,7 +724,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             }
             
             //Se dibuja siempre al principio, habria que hacer instancias y dibujarlas cada vez que se disparo a un barril en esa posicion
-            esferaExplosion.render();
+            explosiones[numExplosion].render();
 
             //Renderizar original e instancias (no dibujo original, solo instancias)   
             foreach (Enemigo enemigo in instanciasEnemigos)
@@ -1170,21 +1172,28 @@ namespace AlumnoEjemplos.FriesPerSecond
             int rows = 1;
             int cols = 5;
             barriles = new List<TgcMesh>();
+            explosiones = new List<TgcMesh>();
             //bool moverFila=false;
 
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < rows; i++) 
             {
                 for (int j = 0; j < cols; j++)
                 {
                     //Crear instancia de modelo
                     TgcMesh instance = barril.createMeshInstance(barril.Name + i + "_" + j);
                     instance.AlphaBlendEnable = true;
+                    TgcMesh instanceExplosion = esferaExplosion.createMeshInstance(i + "_" + j);
 
                     //Desplazarlo
                     instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
                     instance.Scale = new Vector3(4f, 4f, 4f);
 
+                    instanceExplosion.Position = instance.Position;
+                    instanceExplosion.move(new Vector3(0f, 100f, 0f));
+                    instanceExplosion.Scale = new Vector3(6f, 6f, 6f);
+
                     barriles.Add(instance);
+                    explosiones.Add(instanceExplosion);
                 }
             }
         }
