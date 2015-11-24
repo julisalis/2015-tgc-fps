@@ -485,8 +485,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             
 
         }
-
-        private void crearEsferaExplosion()
+        public void crearEsferaExplosion()
         {
             TgcSceneLoader loaderExplosion = new TgcSceneLoader();
             esferaExplosion = loaderExplosion.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "ModelosTgc\\Sphere\\Sphere-TgcScene.xml").Meshes[0];
