@@ -820,10 +820,14 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 if (puntaje > Int32.Parse(System.IO.File.ReadAllText(alumnoMediaFolder + "\\record.txt")))
                 {
+                    textoPuntajeFinal.Text = "Nuevo Record! Tu puntaje fue: " + puntaje.ToString();
                     System.IO.File.WriteAllText(alumnoMediaFolder + "\\record.txt", puntaje.ToString());
                     //textoPuntajeRecord.Text = "Tu puntaje record es: " + puntaje.ToString();
                 }
-                textoPuntajeFinal.Text = "Tu puntaje fue: " + puntaje.ToString();
+                else
+                {
+                    textoPuntajeFinal.Text = "Tu puntaje fue: " + puntaje.ToString();
+                }
                 player.stop();
                 camaraQ3.LockCam = false;
                 ganador.SoundBuffer.SetCurrentPosition(0);
@@ -1178,7 +1182,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //barril.AlphaBlendEnable = true;
 
             //Crear varias instancias del modelo original, pero sin volver a cargar el modelo entero cada vez
-            int rows = 1;
+            int rows = 2;
             int cols = 5;
             barriles = new List<Barril>();
             explosiones = new List<TgcMesh>();
