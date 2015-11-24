@@ -53,7 +53,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcBox personaje;
         TgcMesh barril;
         TgcMesh barrilDisparado;
-        TgcSphere esferaExplosion;
+        TgcMesh esferaExplosion;
         List<TgcMesh> barriles;
 
 
@@ -479,7 +479,16 @@ namespace AlumnoEjemplos.FriesPerSecond
             primeraVez = true;
             #endregion menu
 
+            crearEsferaExplosion();
 
+        }
+
+        private void crearEsferaExplosion()
+        {
+            TgcSceneLoader loaderExplosion = new TgcSceneLoader();
+            esferaExplosion = loaderExplosion.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "ModelosTgc\\Sphere\\Sphere-TgcScene.xml").Meshes[0];
+            esferaExplosion.changeDiffuseMaps(new TgcTexture[] { TgcTexture.createTexture(d3dDevice, GuiController.Instance.ExamplesDir + "Transformations\\SistemaSolar\\SunTexture.jpg") });
+            esferaExplosion.Scale = new Vector3(7f, 7f, 7f);
         }
 
         public override void render(float elapsedTime)
@@ -693,7 +702,9 @@ namespace AlumnoEjemplos.FriesPerSecond
                 foreach (TgcMesh b in barriles)
                 {
                     if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.BoundingBox, out col))
-                    {   
+                    {
+                        esferaExplosion.Position = b.Position;
+                        esferaExplosion.move(new Vector3(0f, 200f, 0f));
                         boundingBarril = new TgcBoundingSphere(b.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
                         barrilDisparado = b;
@@ -710,6 +721,8 @@ namespace AlumnoEjemplos.FriesPerSecond
                 }
             }
             
+            //Se dibuja siempre al principio, habria que hacer instancias y dibujarlas cada vez que se disparo a un barril en esa posicion
+            esferaExplosion.render();
 
             //Renderizar original e instancias (no dibujo original, solo instancias)   
             foreach (Enemigo enemigo in instanciasEnemigos)
