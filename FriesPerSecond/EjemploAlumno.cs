@@ -468,7 +468,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoPuntajeFinal = new TgcText2d();
             textoPuntajeFinal.Color = Color.Black;
             textoPuntajeFinal.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
-            textoPuntajeFinal.Size = new Size(600, 100);
+            textoPuntajeFinal.Size = new Size(800, 100);
             textoPuntajeFinal.Position = new Point((screenSize.Width / 2) - textoPuntajeFinal.Size.Width / 2, (screenSize.Height / 2) - textoPuntajeFinal.Size.Height/2 + textoGanaste.Size.Height);
 
             textoPuntajeRecord = new TgcText2d();
