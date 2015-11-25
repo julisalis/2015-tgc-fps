@@ -276,15 +276,7 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             fuegoArma.Position = arma.Position + new Vector2(22f,28f);
 
-            //Cargar malla original
-            loader = new TgcSkeletalLoader();
-            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
-            mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
-            originalEnemigo = loader.loadMeshFromFile(pathMesh, mediaPath);
-            originalEnemigo.Scale = new Vector3(3.4f, 3.4f, 3.4f);
-
-            //Agregar animación a original
-            loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
+            
 
             
 
@@ -394,7 +386,7 @@ namespace AlumnoEjemplos.FriesPerSecond
             //ENEMIGOS          
             instanciasEnemigos = new List<Enemigo>();
             //El ultimo parametro es el radio
-            inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+            inicializarEnemigos(4, 4, instanciasEnemigos, 3.4f, 200.0f);
 
             crearEsferaExplosion();
             inicializarBarriles();
@@ -608,7 +600,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     instanciasEnemigos = new List<Enemigo>();
                     barriles.Clear();
                     //loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
-                    inicializarEnemigos(4, 4, originalEnemigo, instanciasEnemigos, 3.4f, 200.0f);
+                    inicializarEnemigos(4, 4, instanciasEnemigos, 3.4f, 200.0f);
                     inicializarBarriles();
                 }
                 primeraVez = false;
@@ -1233,8 +1225,17 @@ namespace AlumnoEjemplos.FriesPerSecond
         }
 
 
-        public void inicializarEnemigos(int columnas, int filas, TgcSkeletalMesh meshOriginal, List<Enemigo> lista, float scale, float radio)
+        public void inicializarEnemigos(int columnas, int filas, List<Enemigo> lista, float scale, float radio)
         {
+            //Cargar malla original
+            loader = new TgcSkeletalLoader();
+            string pathMesh = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\CS_Arctic-TgcSkeletalMesh.xml";
+            mediaPath = GuiController.Instance.ExamplesMediaDir + "SkeletalAnimations\\BasicHuman\\";
+            originalEnemigo = loader.loadMeshFromFile(pathMesh, mediaPath);
+            originalEnemigo.Scale = new Vector3(3.4f, 3.4f, 3.4f);
+
+            //Agregar animación a original
+            loader.loadAnimationFromFile(originalEnemigo, mediaPath + "\\Animations\\Walk-TgcSkeletalAnim.xml");
 
             //Cargar Shader personalizado
             //meshOriginal.Effect = enemigoEffect;
@@ -1249,7 +1250,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                 for (int q = 0; q < columnas; q++)
                 {
                     //Crear instancia de modelo
-                    TgcSkeletalMesh instance = meshOriginal.createMeshInstance(originalEnemigo.Name + k + "_" + q);
+                    TgcSkeletalMesh instance = originalEnemigo.createMeshInstance(originalEnemigo.Name + k + "_" + q);
                     do
                     {
                         x = rand.Next(-5000, 5000);
