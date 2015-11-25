@@ -56,6 +56,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcMesh esferaExplosion;
         List<Barril> barriles;
         List<TgcMesh> explosiones;
+        TgcMesh logoTgc;
+        TgcScene sceneLogo;
 
 
 
@@ -73,6 +75,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcStaticSound explosion;
         TgcStaticSound muerte;
         TgcStaticSound ganador;
+        TgcStaticSound sorpresa;
 
         protected Point mouseCenter;
 
@@ -125,6 +128,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         TgcSkeletalLoader loader;
         string alumnoMediaFolder;
         int numExplosion;
+        float[] lightPos = new float[] { 0, 1900, 300 };
+        bool reproducirSorpresa;
 
         //Musica
         //TgcMp3Player musicaFondo = GuiController.Instance.Mp3Player;
@@ -253,6 +258,9 @@ namespace AlumnoEjemplos.FriesPerSecond
 
             ganador = new TgcStaticSound();
             ganador.loadSound(alumnoMediaFolder + "\\Sonidos\\ganador.wav");
+            
+            sorpresa = new TgcStaticSound();
+            sorpresa.loadSound(alumnoMediaFolder + "\\Sonidos\\sorpresa.wav");
 
             
 
@@ -312,6 +320,22 @@ namespace AlumnoEjemplos.FriesPerSecond
             textoPuntaje.Size = new Size(300, 100);
             textoPuntaje.changeFont(new System.Drawing.Font("BankGothic Md BT", 25, FontStyle.Bold));
             textoPuntaje.Position = new Point(screenSize.Width - 300, 0);
+
+            TgcSceneLoader loaderLogo = new TgcSceneLoader();
+            logoTgc = loaderLogo.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "ModelosTgc\\LogoTGC\\LogoTGC-TgcScene.xml").Meshes[0];
+            logoTgc.move(new Vector3(0f, 1900f, 0f));
+            logoTgc.Scale = new Vector3(14f, 14f, 14f);
+            
+            //Cargar Shader de PhongShading
+            logoTgc.Effect = GuiController.Instance.Shaders.TgcMeshPhongShader;
+            logoTgc.Technique = GuiController.Instance.Shaders.getTgcMeshTechnique(logoTgc.RenderType);
+            //Cargar variables shader
+            logoTgc.Effect.SetValue("ambientColor", ColorValue.FromColor(Color.Gray));
+            logoTgc.Effect.SetValue("diffuseColor", ColorValue.FromColor(Color.LightBlue));
+            logoTgc.Effect.SetValue("specularColor", ColorValue.FromColor(Color.White));
+            logoTgc.Effect.SetValue("specularExp", 20f);
+            logoTgc.Effect.SetValue("lightPosition", lightPos);
+            reproducirSorpresa = false;
 
             
 
@@ -641,7 +665,8 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
             camaraQ3.LockCam = true;
             camaraQ3.updateCamera();
-
+            
+            
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
             effect.SetValue("time", time);            
 
@@ -699,12 +724,17 @@ namespace AlumnoEjemplos.FriesPerSecond
             {
                 foreach (Barril b in barriles)
                 {
-                    if (TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.mesh.BoundingBox, out col))
+                    if (!b.fueDisparado && TgcCollisionUtils.intersectRayAABB(unaBala.ray, b.mesh.BoundingBox, out col))
                     {
+                        
                         boundingBarril = new TgcBoundingSphere(b.mesh.BoundingBox.calculateBoxCenter(), 400f);
                         disparoBarril = true;
                         barrilDisparado = b;
                         b.fueDisparado = true;
+                        if (barriles.TrueForAll(fueDisparado))
+                        {
+                            reproducirSorpresa = true;
+                        }
                         explosion.SoundBuffer.SetCurrentPosition(0);
                         explosion.play(false);
                         huboDisparo = false;
@@ -973,9 +1003,25 @@ namespace AlumnoEjemplos.FriesPerSecond
                     explosiones[barriles.IndexOf(b)].Effect.SetValue("time", b.tiempo);
                     explosiones[barriles.IndexOf(b)].render();
                 }
-
-                
             }
+            if (barriles.TrueForAll(fueDisparado))
+            {
+                logoTgc.Effect.SetValue("eyePosition", TgcParserUtils.vector3ToFloat4Array(camaraQ3.getPosition()));
+                logoTgc.render();
+            }
+            if (reproducirSorpresa)
+            {
+                sorpresa.SoundBuffer.SetCurrentPosition(0);
+                sorpresa.play(false);
+                puntaje += 500;
+                reproducirSorpresa = false;
+            }
+
+        }
+
+        private bool fueDisparado (Barril b)
+        {
+            return b.fueDisparado;
         }
 
         private void renderizarPiedras()
