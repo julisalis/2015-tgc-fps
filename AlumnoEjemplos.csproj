@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FriesPerSecond\Barril.cs" />
     <Compile Include="FriesPerSecond\Disparo.cs" />
     <Compile Include="FriesPerSecond\EjemploAlumno.cs" />
     <Compile Include="FriesPerSecond\Enemigo.cs" />
