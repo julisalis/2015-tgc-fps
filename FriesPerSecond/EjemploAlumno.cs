@@ -58,6 +58,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         List<TgcMesh> explosiones;
         TgcMesh logoTgc;
         TgcScene sceneLogo;
+        TgcSprite efectoAlarma;
 
 
 
@@ -501,6 +502,10 @@ namespace AlumnoEjemplos.FriesPerSecond
             primeraVez = true;
             #endregion menu
 
+            efectoAlarma = new TgcSprite();
+            efectoAlarma.Texture = TgcTexture.createTexture(alumnoMediaFolder + "\\efecto_alarma.png");
+
+
             
 
         }
@@ -665,7 +670,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         {
             camaraQ3.LockCam = true;
             camaraQ3.updateCamera();
-            
+
             
             // Cargar variables de shader, por ejemplo el tiempo transcurrido.
             effect.SetValue("time", time);            
@@ -928,6 +933,11 @@ namespace AlumnoEjemplos.FriesPerSecond
             
             textoPuntaje.Text = "Puntos: " + puntaje;
             textoPuntaje.render();
+
+            if (numVida < 20)
+            {
+                efectoAlarma.render();
+            }
             //Finalizar el dibujado de Sprites
             GuiController.Instance.Drawer2D.endDrawSprite();
         }
