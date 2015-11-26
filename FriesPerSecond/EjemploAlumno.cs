@@ -1219,7 +1219,7 @@ namespace AlumnoEjemplos.FriesPerSecond
         private void inicializarBarriles()
         {
             string alumnoMediaFolder = GuiController.Instance.AlumnoEjemplosMediaDir;
-
+            Random rand1 = new Random();
             //Cargar modelo de palmera original
             TgcSceneLoader loader1 = new TgcSceneLoader();
             scene = loader1.loadSceneFromFile(GuiController.Instance.ExamplesMediaDir + "MeshCreator\\Meshes\\Objetos\\BarrilPolvora\\BarrilPolvora-TgcScene.xml");
@@ -1244,7 +1244,7 @@ namespace AlumnoEjemplos.FriesPerSecond
                     instanceExplosion.AlphaBlendEnable = true;
 
                     //Desplazarlo
-                    instance.move(rand.Next(-10000, 10000), 0, rand.Next(-10000, 10000));
+                    instance.move(rand1.Next(-5000, 5000), 0, rand1.Next(-5000, 5000));
                     instance.Scale = new Vector3(4f, 4f, 4f);
 
                     instanceExplosion.Position = instance.Position;
